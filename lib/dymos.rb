@@ -1,5 +1,8 @@
+require "dymos/base"
 require "dymos/version"
 
 module Dymos
-  # Your code goes here...
+  def self.base
+    Dymos::Base
+  end
 end

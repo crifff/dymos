@@ -17,8 +17,7 @@ module Dymos
 
     def attributes=(values)
       values.each do |k, v|
-        type = attribute_types[k.to_sym]
-        instance_variable_set("@#{k}", v.send(type))
+        instance_variable_set("@#{k}", v)
       end
     end
 
@@ -31,10 +30,6 @@ module Dymos
     end
 
     def dynamo
-      Aws.config[:region] = 'us-west-1'
-      Aws.config[:endpoint] = 'http://localhost:8000'
-      Aws.config[:access_key_id] = 'XXX'
-      Aws.config[:secret_access_key] = 'XXX'
       @dynamo ||= Aws::DynamoDB::Client.new()
     end
 
@@ -51,7 +46,7 @@ module Dymos
       res = dynamo.get_item(
           table_name: table_name,
           key: {
-              name: {s: key}
+              id: key
           },
           attributes_to_get: attribute_types.keys,
           consistent_read: consistent,
@@ -66,15 +61,14 @@ module Dymos
       attribute_types.each do |k, v|
         value = instance_variable_get("@#{k}")
         if value != nil
-          items[k] ={
-              v.to_sym => value.to_s
-          }
+          items[k] =value
         end
       end
-      dynamo.put_item(
+      result = dynamo.put_item(
           table_name: table_name,
           item: items
       )
+      result
     end
   end
 end

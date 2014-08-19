@@ -1,10 +1,12 @@
+# -*- encoding: utf-8 -*-
+require 'rubygems'
 require 'rake'
-require 'rake/testtask'
-require "bundler/gem_tasks"
+$:.unshift  File.join(File.dirname(__FILE__), "lib")
 
-Rake::TestTask.new do |t|
-  t.libs << 'spec'
-  t.pattern = 'spec/**/*_spec.rb'
-end
+require 'rspec/core'
+require 'rspec/core/rake_task'
 
-task :default => :test
+task :default => :spec
+
+desc "Run all specs in spec directory"
+RSpec::Core::RakeTask.new(:spec)

@@ -43,13 +43,26 @@ describe Dymos::Base do
 
 
   let(:model) { Dummy.new }
+
+  describe Dymos do
+    it "Dymos::Base" do
+      expect(Dymos::Base.name).to eq('Dymos::Base')
+    end
+  end
+
   describe :table_name do
     it "table_nameはクラス名を返す" do
+      expect(Dymos::Base.new.table_name).to eq('Dymos::Base')
+    end
+    it "オーバーライドして異なる名前を返す" do
       expect(model.table_name).to eq('dummy')
     end
   end
 
   describe :attribute_types do
+    it "オーバーライドしていないと例外" do
+      expect { Dymos::Base.new.attribute_types }.to raise_error(RuntimeError, 'please override me!')
+    end
     it "attributeの定義を返す" do
       expect(model.attribute_types[:id]).to eq('n')
     end
@@ -72,6 +85,15 @@ describe Dymos::Base do
         data = model.find("hoge")
         expect(data.name).to eq('太郎')
         expect(data.favorite).to eq(Set['a', 'b', 'c'])
+      end
+
+      describe :attributes do
+        it "attributes" do
+          data = model.find("hoge")
+          expect(data.attributes[:id]).to eq('hoge')
+          expect(data.attributes[:name]).to eq('太郎')
+          expect(data.attributes[:favorite]).to eq(Set['a', 'b', 'c'])
+        end
       end
     end
 

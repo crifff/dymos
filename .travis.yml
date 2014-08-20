@@ -1,4 +1,5 @@
 language: ruby
+cache: bundler
 before_script: 'bundle exec fake_dynamo -d .fake_dynamo.db -P .fake_dynamo.pid -D'
 script: 'bundle exec rake'
 after_script: 'kill `cat .fake_dynamo.pid`'

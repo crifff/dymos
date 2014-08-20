@@ -80,6 +80,14 @@ describe Dymos::Base do
       end
     end
 
+    describe :describe do
+      it "table情報を得る" do
+        expect(model.describe[:table][:table_name]).to eq('dummy')
+        expect(model.describe[:table][:key_schema].first[:attribute_name]).to eq('id')
+        expect(model.describe[:table][:key_schema].first[:key_type]).to eq('HASH')
+      end
+    end
+
     describe :find do
       it "keyからitemを得る" do
         data = model.find("hoge")

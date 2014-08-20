@@ -4,7 +4,4 @@ before_script: 'bundle exec fake_dynamo -d .fake_dynamo.db -P .fake_dynamo.pid -
 script: 'bundle exec rake'
 after_script: 'kill `cat .fake_dynamo.pid`'
 rvm:
-  - 2.0.0
-  - 2.1.0
-  - 2.1.1
   - 2.1.2

@@ -55,34 +55,35 @@ describe Dymos::Base do
     end
   end
 
-  describe :dynamo do
+  describe :dynamo, :order => :defined do
     it "DynamoDb::Clientを返す" do
       expect(model.dynamo.class.name).to eq('Aws::DynamoDB::Client')
     end
-  end
 
-  describe :all do
-    it "リストを得る" do
-      expect(model.all.size).to eq(3)
+
+    describe :all do
+      it "リストを得る" do
+        expect(model.all.size).to eq(3)
+      end
     end
-  end
 
-  describe :find do
-    it "keyからitemを得る" do
-      data = model.find("hoge")
-      expect(data.name).to eq('太郎')
-      expect(data.favorite).to eq(Set['a', 'b', 'c'])
+    describe :find do
+      it "keyからitemを得る" do
+        data = model.find("hoge")
+        expect(data.name).to eq('太郎')
+        expect(data.favorite).to eq(Set['a', 'b', 'c'])
+      end
     end
-  end
 
-  describe :save do
-    it '記録する' do
-      model = Dummy.new
-      model.id = "pico"
-      model.name = "四郎"
-      model.favorite = Set['d', 'e', 'f']
-      res = model.save
-      expect(res.successful?).to eq(true)
+    describe :save do
+      it '記録する' do
+        model = Dummy.new
+        model.id = "pico"
+        model.name = "四郎"
+        model.favorite = Set['d', 'e', 'f']
+        res = model.save
+        expect(res.successful?).to eq(true)
+      end
     end
   end
 end

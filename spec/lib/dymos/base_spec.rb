@@ -46,7 +46,7 @@ describe Dymos::Base do
 
   describe Dymos do
     it "Dymos::Base" do
-      expect(Dymos::Base.name).to eq('Dymos::Base')
+      expect(Dymos::base.name).to eq('Dymos::Base')
     end
   end
 

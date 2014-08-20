@@ -1,6 +1,6 @@
 # Dymos
 [![Build Status](https://travis-ci.org/hoshina85/dymos.svg?branch=master)](https://travis-ci.org/hoshina85/dymos)
-[![Coverage Status](https://coveralls.io/repos/hoshina85/dymos/badge.png)](https://coveralls.io/r/hoshina85/dymos)
+[![Coverage Status](https://coveralls.io/repos/hoshina85/dymos/badge.png?branch=master)](https://coveralls.io/r/hoshina85/dymos?branch=master)
 
 TODO: Write a gem description
 

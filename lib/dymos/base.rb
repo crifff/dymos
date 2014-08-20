@@ -11,6 +11,10 @@ module Dymos
       self.class.name
     end
 
+    def global_index
+
+    end
+
     def attribute_types
       raise 'please override me!'
     end
@@ -29,8 +33,12 @@ module Dymos
       attrs
     end
 
+    def describe
+      dynamo.describe_table(table_name: table_name)
+    end
+
     def dynamo
-      @dynamo ||= Aws::DynamoDB::Client.new()
+      @dynamo ||= Aws::DynamoDB::Client.new
     end
 
     def all
@@ -64,11 +72,10 @@ module Dymos
           items[k] =value
         end
       end
-      result = dynamo.put_item(
+      dynamo.put_item(
           table_name: table_name,
           item: items
       )
-      result
     end
   end
 end

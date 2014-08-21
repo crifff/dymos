@@ -66,6 +66,12 @@ describe Dymos::Model do
 
 #  let(:model) { Dummy.new }
 
+  describe Dymos do
+    it "dymos.model" do
+      expect(Dymos::model.name).to eq('Dymos::Model')
+    end
+  end
+
   describe :new do
 
     describe :field do

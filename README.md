@@ -12,11 +12,7 @@ Add this line to your application's Gemfile:
 gem 'dymos'
 ```
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
+install it yourself as:
 
     $ gem install dymos
 

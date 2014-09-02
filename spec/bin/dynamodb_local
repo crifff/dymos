@@ -12,4 +12,4 @@ if [ -f $dynamoDir/dynamodb_local_latest ]; then
   rm $dynamoDir/dynamodb_local_latest
 fi
 
-java -Djava.library.path=$dynamoDir/DynamoDBLocal_lib/ -jar $dynamoDir/DynamoDBLocal.jar  -port 4567 -inMemory
+java -Djava.library.path=$dynamoDir/DynamoDBLocal_lib/ -jar $dynamoDir/DynamoDBLocal.jar  -port 4567 -dbPath /tmp/

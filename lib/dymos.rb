@@ -1,4 +1,5 @@
 require "dymos/model"
+require "dymos/command"
 require "dymos/version"
 
 module Dymos

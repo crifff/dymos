@@ -1,6 +1,6 @@
 module Dymos
   module Query
-    class PutItem < Dymos::Query::Builder
+    class PutItem < ::Dymos::Query::Builder
 
       def item(params)
         @item = params

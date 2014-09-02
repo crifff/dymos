@@ -1,8 +1,7 @@
 language: ruby
 cache: bundler
 before_script: './spec/bin/dynamodb_local &'
-script: 'bundle exec rake'
-after_script: 'kill `cat .fake_dynamo.pid`'
+script: 'bundle exec rake --trace'
 rvm:
   - 2.1.0
   - 2.1.1

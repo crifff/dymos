@@ -4,6 +4,7 @@ require 'active_model'
 module Dymos
   class Model
     include ActiveModel::Model
+    extend Dymos::Command
 
     def initialize(params={})
       @attributes = {}
@@ -18,6 +19,7 @@ module Dymos
     end
 
     def self.table(name)
+      define_singleton_method('table_name') { name }
       define_method('table_name') { name }
     end
 

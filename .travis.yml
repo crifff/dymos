@@ -3,7 +3,7 @@ cache: bundler
 before_script:
   - wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest
   - tar xfz dynamodb_local_latest
-  - java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory &
+  - java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -port 4567 &
 rvm:
   - 2.1.0
   - 2.1.1

@@ -1,7 +1,9 @@
 language: ruby
 cache: bundler
 before_script:
-  - java -Djava.library.path=./spec/bin/dynamodb/DynamoDBLocal_lib/ -jar ./spec/bin/dynamodb/DynamoDBLocal.jar  -port 4567 -inMemory &
+  - wget http://dynamodb-local.s3-website-us-west-2.amazonaws.com/dynamodb_local_latest
+  - tar xfz dynamodb_local_latest
+  - java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory &
 rvm:
   - 2.1.0
   - 2.1.1

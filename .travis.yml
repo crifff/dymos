@@ -2,8 +2,6 @@ language: ruby
 cache: bundler
 before_script:
   - java -Djava.library.path=./spec/bin/dynamodb/DynamoDBLocal_lib/ -jar ./spec/bin/dynamodb/DynamoDBLocal.jar  -port 4567 -inMemory &
-script: 
-  - bundle exec rake
 rvm:
   - 2.1.0
   - 2.1.1

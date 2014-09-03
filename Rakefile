@@ -1,13 +1,7 @@
-# -*- encoding: utf-8 -*-
-require "bundler/gem_tasks" 
-require 'rubygems'
-require 'rake'
-$:.unshift  File.join(File.dirname(__FILE__), "lib")
+#!/usr/bin/env rake
+require 'bundler/gem_tasks'
 
-require 'rspec/core'
+# RSpec
 require 'rspec/core/rake_task'
-
-task :default => :spec
-
-desc "Run all specs in spec directory"
 RSpec::Core::RakeTask.new(:spec)
+task :default => :spec

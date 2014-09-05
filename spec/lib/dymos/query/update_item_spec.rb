@@ -21,6 +21,8 @@ describe Dymos::Query::UpdateItem do
         })
     client.put_item(table_name: 'test_update_item', item: {id: 'hoge', name: '太郎'})
     client.put_item(table_name: 'test_update_item', item: {id: 'fuga', count: 0})
+    client.put_item(table_name: 'test_update_item', item: {id: 'poyo', name: '可奈'})
+    client.put_item(table_name: 'test_update_item', item: {id: 'piyo', name: '杏奈', count: 10})
 
     class TestItem < Dymos::Model
       table :test_update_item
@@ -66,6 +68,43 @@ describe Dymos::Query::UpdateItem do
           query = TestItem.update.key(id: "fuga").attribute_updates({count: 1}, 'add')
           res = query.execute client
           expect(res.count).to eq(1)
+        end
+
+        describe "条件付き更新" do
+          describe :== do
+            let(:query) { TestItem.update.key(id: "poyo").attribute_updates({name: "志保"}, 'PUT').expected(name: "== 可奈") }
+
+            it :query do
+              expect(query.query).to eq({
+                                            table_name: "test_update_item",
+                                            key: {id: "poyo"},
+                                            attribute_updates: {name: {value: "志保", action: "PUT"}},
+                                            expected: ({name: {value: "可奈", comparison_operator: "EQ"}}),
+                                            return_values: "ALL_NEW",
+                                        })
+            end
+            it "成功すると新しいアイテムを返す" do
+              res = query.execute client
+              expect(res.name).to eq("志保")
+            end
+          end
+          describe :between do
+            let(:query) { TestItem.update.key(id: "piyo").attribute_updates({name: "百合子"}, 'PUT').expected(count: "between 9 12") }
+
+            it :query do
+              expect(query.query).to eq({
+                                            table_name: "test_update_item",
+                                            key: {id: "piyo"},
+                                            attribute_updates: {name: {value: "百合子", action: "PUT"}},
+                                            expected: ({count: {attribute_value_list: [9, 12], comparison_operator: "BETWEEN"}}),
+                                            return_values: "ALL_NEW",
+                                        })
+            end
+            it "成功すると新しいアイテムを返す" do
+              res = query.execute client
+              expect(res.name).to eq("百合子")
+            end
+          end
         end
       end
     end

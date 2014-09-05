@@ -91,10 +91,15 @@ module Dymos
     end
 
     def dynamo
-
       @client ||= Aws::DynamoDB::Client.new
     end
 
+    # @return [String]
+    def self.class_name
+      self.name
+    end
+
+    # @return [String]
     def class_name
       self.class.name
     end

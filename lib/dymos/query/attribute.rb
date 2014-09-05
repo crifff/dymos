@@ -9,7 +9,6 @@ module Dymos
       def data
         @value
       end
-
     end
   end
 end

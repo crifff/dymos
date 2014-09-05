@@ -3,7 +3,8 @@ module Dymos
     class Builder
       attr_accessor :table_name, :command, :query
 
-      def initialize(command, table_name=nil)
+      def initialize(command, table_name=nil, class_name=nil)
+        @class_name = class_name
         @command = command
         @table_name = table_name if table_name.present?
         self
@@ -19,7 +20,23 @@ module Dymos
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException
           return false
         end
-        res.data
+        if @class_name.present?
+          if res.data.include? :items
+            res.data[:items].map do |datum|
+              obj = Object.const_get(@class_name).new
+              obj.attributes = datum
+              obj
+            end
+          elsif res.data.respond_to? :attributes
+            return nil if res.attributes.nil?
+            obj = Object.const_get(@class_name).new
+            obj.attributes = res.attributes
+            obj
+          end
+        else
+          res.data
+        end
+
       end
     end
   end

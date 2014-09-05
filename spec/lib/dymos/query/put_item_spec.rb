@@ -22,7 +22,7 @@ describe Dymos::Query::PutItem do
     client.put_item(table_name: 'test_put_item', item: {id: 'hoge', name: '太郎'})
     client.put_item(table_name: 'test_put_item', item: {id: 'fuga', category_id: 1})
 
-    class TestPutItem < Dymos::Model
+    class TestItem < Dymos::Model
       table :test_put_item
       field :id, :string
     end
@@ -32,7 +32,7 @@ describe Dymos::Query::PutItem do
   describe :put_item do
     describe "クエリ生成" do
       it "追加のみ" do
-        query = TestPutItem.put.item(id: "foo", name: "John")
+        query = TestItem.put.item(id: "foo", name: "John")
         expect(query.query).to eq({
                                       table_name: "test_put_item",
                                       item: {id: "foo", name: "John"},
@@ -42,9 +42,9 @@ describe Dymos::Query::PutItem do
 
     end
     it "条件なしput_item実行 追加時はattributesがnilになる" do
-      query = TestPutItem.put.item(id: "foo", name: "John")
+      query = TestItem.put.item(id: "foo", name: "John")
       result = query.execute client
-      expect(result.attributes).to eq(nil)
+      expect(result).to eq(nil)
     end
 
     # it "条件ありput_item" do
@@ -76,12 +76,12 @@ describe Dymos::Query::PutItem do
     # it "条件ありput_item実行 成功すると古いデータを返す" do
     #   query = TestPutItem.put.item(id: "hoge", name: "次郎").expected(name: "== 太郎")
     #   result = query.execute client
-    #   expect(result.attributes).to eq({"id" => "hoge", "name" => "太郎"})
+    #   expect(result.attributes).to eq({id: "hoge", name: "太郎"})
     # end
 
     describe "条件指定" do
       describe :== do
-        let(:query) { TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "== 1") }
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "== 1") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
@@ -90,16 +90,16 @@ describe Dymos::Query::PutItem do
         end
         it :execute do
           result = query.execute client
-          expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
         end
         it :error do
-          query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "== 2")
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "== 2")
           expect(query.execute(client)).to eq(false)
         end
       end
 
       describe :> do
-        let(:query) { TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "> 0") }
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "> 0") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
@@ -108,16 +108,16 @@ describe Dymos::Query::PutItem do
         end
         it :execute do
           result = query.execute client
-          expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
         end
         it :error do
-          query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "> 2")
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "> 2")
           expect(query.execute(client)).to eq(false)
         end
       end
 
       describe :>= do
-        let(:query) { TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: ">= 1") }
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: ">= 1") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
@@ -126,16 +126,16 @@ describe Dymos::Query::PutItem do
         end
         it :execute do
           result = query.execute client
-          expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
         end
         it :error do
-          query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "> 2")
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "> 2")
           expect(query.execute(client)).to eq(false)
         end
       end
 
       describe :< do
-        let(:query) { TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "< 2") }
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "< 2") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
@@ -144,16 +144,16 @@ describe Dymos::Query::PutItem do
         end
         it :execute do
           result = query.execute client
-          expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
         end
         it :error do
-          query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "< 0")
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "< 0")
           expect(query.execute(client)).to eq(false)
         end
       end
 
       describe :<= do
-        let(:query) { TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "<= 1") }
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "<= 1") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
@@ -162,16 +162,16 @@ describe Dymos::Query::PutItem do
         end
         it :execute do
           result = query.execute client
-          expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
         end
         it :error do
-          query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "<= 0")
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "<= 0")
           expect(query.execute(client)).to eq(false)
         end
       end
 
       describe :between do
-        let(:query) { TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "between 1 2") }
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "between 1 2") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
@@ -180,16 +180,16 @@ describe Dymos::Query::PutItem do
         end
         it :execute do
           result = query.execute client
-          expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
         end
         it :error do
-          query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "between 2 3")
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "between 2 3")
           expect(query.execute(client)).to eq(false)
         end
       end
 
       describe :contain do
-        let(:query) { TestPutItem.put.item(id: "fuga", category_id: 1).expected(id: "contains uga") }
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(id: "contains uga") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
@@ -198,16 +198,16 @@ describe Dymos::Query::PutItem do
         end
         it :execute do
           result = query.execute client
-          expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
         end
         it :error do
-          query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(id: "contains ppp")
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(id: "contains ppp")
           expect(query.execute(client)).to eq(false)
         end
       end
 
       describe :not_contain do
-        let(:query) { TestPutItem.put.item(id: "fuga", category_id: 1).expected(id: "not_contains ppp") }
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(id: "not_contains ppp") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
@@ -216,16 +216,16 @@ describe Dymos::Query::PutItem do
         end
         it :execute do
           result = query.execute client
-          expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
         end
         it :error do
-          query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(id: "not_contains uga")
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(id: "not_contains uga")
           expect(query.execute(client)).to eq(false)
         end
       end
 
       describe :begins_with do
-        let(:query) { TestPutItem.put.item(id: "fuga", category_id: 1).expected(id: "begins_with fug") }
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(id: "begins_with fug") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
@@ -234,16 +234,16 @@ describe Dymos::Query::PutItem do
         end
         it :execute do
           result = query.execute client
-          expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
         end
         it :error do
-          query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(id: "begins_with uga")
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(id: "begins_with uga")
           expect(query.execute(client)).to eq(false)
         end
       end
 
       describe :is_null do
-        let(:query) { TestPutItem.put.item(id: "fuga", category_id: 1).expected(bar: "is_null") }
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(bar: "is_null") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
@@ -252,16 +252,16 @@ describe Dymos::Query::PutItem do
         end
         it :execute do
           result = query.execute client
-          expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
         end
         it :error do
-          query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(id: "is_null")
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(id: "is_null")
           expect(query.execute(client)).to eq(false)
         end
       end
 
       describe :is_not_null do
-        let(:query) { TestPutItem.put.item(id: "fuga", category_id: 1).expected(id: "is_not_null") }
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(id: "is_not_null") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
@@ -270,24 +270,24 @@ describe Dymos::Query::PutItem do
         end
         it :execute do
           result = query.execute client
-          expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
         end
         it :error do
-          query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(bar: "is_not_null")
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(bar: "is_not_null")
           expect(query.execute(client)).to eq(false)
         end
       end
     end
     #
     # it :< do
-    #   query = TestPutItem.put.item(id: "fuga", "category_id" => 1).expected(category_id: "< 2")
+    #   query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "< 2")
     #   result = query.execute client
-    #   expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+    #   expect(result.attributes).to eq({id: "fuga", category_id: 1})
     # end
     # it :between do
-    #   query = TestPutItem.put.item(id: "fuga", "category_id" => 1).expected(category_id: "between 1 2")
+    #   query = TestPutItem.put.item(id: "fuga", category_id: 1).expected(category_id: "between 1 2")
     #   result = query.execute client
-    #   expect(result.attributes).to eq({"id" => "fuga", "category_id" => 1})
+    #   expect(result.attributes).to eq({id: "fuga", category_id: 1})
     # end
   end
 end

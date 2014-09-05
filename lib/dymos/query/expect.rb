@@ -44,69 +44,11 @@ module Dymos
         self
       end
 
-      # def equal(value)
-      #   @operator = 'EQ'
-      #   @value = value
-      # end
-      # 
-      # def not_equal(value)
-      #   @operator = 'NE'
-      #   @value = value
-      # end
-      # 
-      # def less_then_equal(value)
-      #   @operator = 'LE'
-      #   @value = value
-      # end
-      # 
-      # def less_then(value)
-      #   @operator = 'LT'
-      #   @value = value
-      # end
-      # 
-      # def <=(value)
-      #   @operator = 'GE'
-      #   @value = value
-      # end
-      # 
-      # def <(value)
-      #   @operator = 'GT'
-      #   @value = value
-      # end
-      # 
-      # def between(value1, value2)
-      #   @operator = 'BETWEEN'
-      #   @value = [value1, value2]
-      # end
-      # 
-      # def is_not_null
-      #   @operator = 'NOT_NULL'
-      # end
-      # 
-      # def is_null
-      #   @operator = 'NULL'
-      # end
-      # 
-      # def contains(value)
-      #   @operator = 'CONTAINS'
-      #   @value = value
-      # end
-      # 
-      # def not_contains(value)
-      #   @operator = 'NOT_CONTAINS'
-      #   @value = value
-      # end
-      # 
-      # def begins_with(value)
-      #   @operator = 'BEGINS_WITH'
-      #   @value = value
-      # end
-
-      def data
-        value = super
-        if value.is_a? Array
+      def data(is_force_array=false)
+        value = super()
+        if is_force_array or value.is_a? Array
           data = {
-              attribute_value_list: value,
+              attribute_value_list: (is_force_array and !(value.is_a? Array)) ? [value] : value,
               comparison_operator: @operator
           }
         else

@@ -55,10 +55,12 @@ describe Dymos::Query::Query do
   describe :put_item do
     describe "クエリ生成" do
       describe "グローバルセカンダリインデックスを利用した検索" do
-        let(:query) { TestItem.query.index_name(:index_other_id).key_conditions(
-            id: "== hoge",
-            other_id: "between 1 3"
-        ) }
+        let(:query) {
+          TestItem.query.index_name(:index_other_id).key_conditions(
+              id: "== hoge",
+              other_id: "between 1 3"
+          )
+        }
         it :query do
           expect(query.query).to eq(
                                      table_name: 'test_query_item',

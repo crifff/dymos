@@ -80,12 +80,34 @@ describe Dymos::Query::PutItem do
     # end
 
     describe "条件指定" do
+      it "undefined operator" do
+        expect{TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "= 1")}.to raise_error(ArgumentError)
+      end
+
       describe :== do
         let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "== 1") }
         it :query do
           expect(query.query).to eq(table_name: "test_put_item",
                                     item: {id: "fuga", category_id: 1},
                                     expected: {:category_id => {:value => 1, :comparison_operator => "EQ"}},
+                                    return_values: "ALL_OLD")
+        end
+        it :execute do
+          result = query.execute client
+          expect(result.attributes).to eq({id: "fuga", category_id: 1})
+        end
+        it :error do
+          query = TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "== 2")
+          expect(query.execute(client)).to eq(false)
+        end
+      end
+
+      describe :!= do
+        let(:query) { TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "!= 0") }
+        it :query do
+          expect(query.query).to eq(table_name: "test_put_item",
+                                    item: {id: "fuga", category_id: 1},
+                                    expected: {:category_id => {:value => 0, :comparison_operator => "NE"}},
                                     return_values: "ALL_OLD")
         end
         it :execute do

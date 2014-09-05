@@ -88,16 +88,22 @@ describe Dymos::Query::UpdateItem do
               expect(res.name).to eq("志保")
             end
           end
-          describe :between do
-            let(:query) { TestItem.update.key(id: "piyo").attribute_updates({name: "百合子"}, 'PUT').expected(count: "between 9 12") }
+          describe "複数条件" do
+            let(:query) { TestItem.update.key(id: "piyo").attribute_updates({name: "百合子"}, 'PUT')
+            .expected(count: "between 9 12", name: "== 杏奈", hoge:"is_null")}
 
             it :query do
               expect(query.query).to eq({
                                             table_name: "test_update_item",
                                             key: {id: "piyo"},
                                             attribute_updates: {name: {value: "百合子", action: "PUT"}},
-                                            expected: ({count: {attribute_value_list: [9, 12], comparison_operator: "BETWEEN"}}),
+                                            expected: ({
+                                                name: {value: "杏奈", comparison_operator: "EQ"},
+                                                count: {attribute_value_list: [9, 12], comparison_operator: "BETWEEN"},
+                                                hoge: {comparison_operator: "NULL"},
+                                            }),
                                             return_values: "ALL_NEW",
+                                            conditional_operator: "AND"
                                         })
             end
             it "成功すると新しいアイテムを返す" do

@@ -21,7 +21,7 @@ module Dymos
           return false
         end
         if @class_name.present?
-          if res.data.include? :items
+          if res.data.respond_to? :items
             res.data[:items].map do |datum|
               obj = Object.const_get(@class_name).new
               obj.attributes = datum

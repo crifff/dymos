@@ -54,31 +54,33 @@ describe Dymos::Query::Query do
   let(:client) { Aws::DynamoDB::Client.new }
   describe :put_item do
     describe "クエリ生成" do
-      it "追加のみ" do
-        query = TestItem.query.index_name(:index_other_id).key_conditions(
+      describe "グローバルセカンダリインデックスを利用した検索" do
+        let(:query) { TestItem.query.index_name(:index_other_id).key_conditions(
             id: "== hoge",
             other_id: "between 1 3"
-        )
-        expect(query.query).to eq(
-                                   table_name: 'test_query_item',
-                                   index_name: 'index_other_id',
-                                   key_conditions: {
-                                       id: {
-                                           attribute_value_list: ["hoge"],
-                                           comparison_operator: "EQ"
-                                       },
-                                       other_id: {
-                                           attribute_value_list: [1, 3],
-                                           comparison_operator: "BETWEEN"
-                                       }},
-                                   consistent_read: false,
-                               )
-        # p client.scan(table_name: "test_query_item")
-        #res = query.execute client
+        ) }
+        it :query do
+          expect(query.query).to eq(
+                                     table_name: 'test_query_item',
+                                     index_name: 'index_other_id',
+                                     key_conditions: {
+                                         id: {
+                                             attribute_value_list: ["hoge"],
+                                             comparison_operator: "EQ"
+                                         },
+                                         other_id: {
+                                             attribute_value_list: [1, 3],
+                                             comparison_operator: "BETWEEN"
+                                         }},
+                                     consistent_read: false,
+                                 )
+        end
+        it :execute do
+          res = query.execute client
+          expect(res.size).to eq(3)
+        end
 
 
-        # expect(res).to eq({})
-        # p client.scan(table_name:"test_query_item")
       end
 
       it :use_global_secondary_index do

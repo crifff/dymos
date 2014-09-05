@@ -84,24 +84,6 @@ describe Dymos::Query::Query do
 
 
       end
-
-      it :use_global_secondary_index do
-        res = client.query(
-            table_name: 'test_query_item',
-            index_name: :index_other_id,
-            key_conditions: {
-                id: {
-                    attribute_value_list: ["hoge"],
-                    comparison_operator: "EQ"
-                },
-                other_id: {
-                    attribute_value_list: [1, 3],
-                    comparison_operator: "BETWEEN"
-                }
-            }
-        )
-        # p res.items
-      end
     end
   end
 end

@@ -50,14 +50,14 @@ describe Dymos::Query::UpdateItem do
       end
 
       describe "既存のアイテムを更新" do
-        describe "更新前のアイテムを返す(:ALL_OLD)" do
-          it "追加した場合はnilを返す" do
+        describe "return_values :ALL_OLD" do
+          it "更新した場合は更新前のアイテムを返す" do
             query = TestItem.update.key(id: "hoge").attribute_updates({name: "次郎"}, 'PUT').return_values(:ALL_OLD)
             res = query.execute client
             expect(res.name).to eq("太郎")
           end
           it "追加した場合はnilを返す" do
-            query = TestItem.update.key(id: "foo").attribute_updates({name: "Sam"}, 'PUT').return_values(:ALL_OLD)
+            query = TestItem.update.key(id: "bar").attribute_updates({name: "Sam"}, 'PUT').return_values(:ALL_OLD)
             res = query.execute client
             expect(res).to eq(nil)
           end

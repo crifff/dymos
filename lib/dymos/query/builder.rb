@@ -14,9 +14,20 @@ module Dymos
 
       end
 
-      def execute(client)
+      def before_send_query(command, query)
+
+      end
+
+      def after_send_query(command, query)
+
+      end
+
+      def execute(client = nil)
+        client ||= Aws::DynamoDB::Client.new
         begin
+          before_send_query command, query
           res = client.send command, query
+          after_send_query command, query
         rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException
           return false
         end
@@ -32,6 +43,14 @@ module Dymos
             obj = Object.const_get(@class_name).new
             obj.attributes = res.attributes
             obj
+          elsif res.respond_to? :data
+            if res.data.respond_to? :item
+              obj = Object.const_get(@class_name).new
+              obj.attributes = res.data.item
+              obj
+            else
+              res.data.to_hash
+            end
           end
         else
           res.data

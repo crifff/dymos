@@ -21,12 +21,12 @@ module Dymos
       Dymos::Query::Query.new(:query, table_name, class_name)
     end
 
-    def scan
-
+    def describe
+      Dymos::Query::Describe.new(:describe_table, table_name, class_name)
     end
 
-    def describe
-
+    def scan
+      Dymos::Query::Scan.new(:scan, table_name, class_name)
     end
   end
 end

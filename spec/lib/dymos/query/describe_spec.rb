@@ -1,4 +1,4 @@
-describe Dymos::Query::GetItem do
+describe Dymos::Query::Describe do
   before :all do
     Aws.config[:region] = 'us-west-1'
     Aws.config[:endpoint] = 'http://localhost:4567'
@@ -31,25 +31,16 @@ describe Dymos::Query::GetItem do
   end
 
   let(:client) { Aws::DynamoDB::Client.new }
-  describe :put_item do
-    describe "クエリ生成" do
-      it "追加のみ" do
-        query = TestItem.get.key(id: 'hoge', category_id: 1)
-        expect(query.query).to eq({
-                                      table_name: "test_get_item",
-                                      key: {id: "hoge", category_id: 1},
-                                      consistent_read: true,
-                                  })
-        # p client.scan(table_name: "test_get_item")
-        res = query.execute client
-        expect(res.id).to eq('hoge')
+  describe :describe do
 
-
-        # expect(res).to eq({})
-        # p client.scan(table_name:"test_get_item")
-      end
-
+    it :query do
+      expect(TestItem.describe.query).to eq(table_name: "test_get_item")
     end
+
+    it :execute do
+      expect(TestItem.describe.execute[:table][:attribute_definitions]).to eq([{:attribute_name => "id", :attribute_type => "S"}, {:attribute_name => "category_id", :attribute_type => "N"}])
+    end
+
   end
 end
 

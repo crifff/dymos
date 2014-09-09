@@ -154,7 +154,7 @@ describe Dymos::Model do
 
     describe :find do
       it "ユーザを抽出" do
-        user = DummyUser.find('hoge')
+        user = DummyUser.get.key(id:'hoge').execute
         expect(user.id).to eq('hoge')
         expect(user.name).to eq('太郎')
       end

@@ -40,31 +40,15 @@ module Dymos
     end
 
     def self.all
-      klass = new
-      result = klass.dynamo.scan({table_name: klass.table_name})
-      result.data[:items].map! { |data|
-        model = Object.const_get(klass.class_name).new
-        model.attributes=data
-        model
-      }
+      self.scan.execute
     end
 
-    def self.find(key1, key2=nil, consistent_read: true)
-      klass = new
-      indexes = klass.global_indexes
+    def self.find(key1, key2=nil)
+      indexes = new.global_indexes
       keys={}
-      keys[indexes.first[:attribute_name]] = key1
-      keys[indexes.last[:attribute_name]] = key2 if indexes.size > 1
-
-      res = klass.dynamo.get_item(
-          table_name: klass.table_name,
-          key:  keys,
-         # attributes_to_get: klass.attributes.keys,
-          consistent_read: consistent_read,
-          return_consumed_capacity: 'TOTAL'
-      )
-      klass.attributes = res.data.item
-      klass
+      keys[indexes.first[:attribute_name].to_sym] = key1
+      keys[indexes.last[:attribute_name].to_sym] = key2 if indexes.size > 1
+      self.get.key(keys).execute
     end
 
     def save

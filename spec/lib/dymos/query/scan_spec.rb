@@ -1,4 +1,4 @@
-describe Dymos::Query::GetItem do
+describe Dymos::Query::Scan do
   before :all do
     Aws.config[:region] = 'us-west-1'
     Aws.config[:endpoint] = 'http://localhost:4567'
@@ -23,6 +23,9 @@ describe Dymos::Query::GetItem do
         })
     client.put_item(table_name: 'test_get_item', item: {id: 'hoge', category_id: 0, name: '太郎'})
     client.put_item(table_name: 'test_get_item', item: {id: 'hoge', category_id: 1})
+    client.put_item(table_name: 'test_get_item', item: {id: 'hoge', category_id: 2})
+    client.put_item(table_name: 'test_get_item', item: {id: 'hoge', category_id: 3})
+    client.put_item(table_name: 'test_get_item', item: {id: 'hoge', category_id: 4})
 
     class TestItem < Dymos::Model
       table :test_get_item
@@ -31,25 +34,16 @@ describe Dymos::Query::GetItem do
   end
 
   let(:client) { Aws::DynamoDB::Client.new }
-  describe :put_item do
-    describe "クエリ生成" do
-      it "追加のみ" do
-        query = TestItem.get.key(id: 'hoge', category_id: 1)
-        expect(query.query).to eq({
-                                      table_name: "test_get_item",
-                                      key: {id: "hoge", category_id: 1},
-                                      consistent_read: true,
-                                  })
-        # p client.scan(table_name: "test_get_item")
-        res = query.execute client
-        expect(res.id).to eq('hoge')
+  describe :scan do
 
-
-        # expect(res).to eq({})
-        # p client.scan(table_name:"test_get_item")
-      end
-
+    it :query do
+      expect(TestItem.scan.limit(100).query).to eq(table_name: "test_get_item", limit: 100)
     end
+
+    it :execute do
+      expect(TestItem.scan.execute.size).to eq(5)
+    end
+
   end
 end
 

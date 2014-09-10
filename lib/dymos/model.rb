@@ -4,19 +4,32 @@ require 'active_model'
 module Dymos
   class Model
     include ActiveModel::Model
+    include ActiveModel::Dirty
+    include Dymos::Persistence
     extend Dymos::Command
     attr_accessor :metadata
 
     def initialize(params={})
-      @attributes = {}
+      @attributes={}
+      send :attributes=, params, true
       super
     end
 
-    def self.field(attr, type = :string)
-      define_method(attr) { read_attribute(attr) }
+    def self.field(attr, type, default: nil)
+      @fields ||= {}
+      @fields[attr]={
+          type: type,
+          default: default
+      }
+      define_attribute_methods attr
+      define_method(attr) { read_attribute(attr) || default }
       define_method("#{attr}_type") { type }
       define_method("#{attr}?") { !read_attribute(attr).nil? }
       define_method("#{attr}=") { |value| write_attribute(attr, value) }
+    end
+
+    def self.fields
+      @fields
     end
 
     def self.table(name)
@@ -24,10 +37,10 @@ module Dymos
       define_method('table_name') { name }
     end
 
-    def attributes=(attributes = {})
+    def attributes=(attributes = {}, initialize = false)
       if attributes
         attributes.each do |attr, value|
-          write_attribute(attr, value)
+          write_attribute(attr, value, initialize)
         end
       end
     end
@@ -45,34 +58,30 @@ module Dymos
     end
 
     def self.find(key1, key2=nil)
-      indexes = new.global_indexes
+      indexes = key_scheme
       keys={}
       keys[indexes.first[:attribute_name].to_sym] = key1
       keys[indexes.last[:attribute_name].to_sym] = key2 if indexes.size > 1
       self.get.key(keys).execute
     end
 
-    def save
-      items = {}
-      attributes.each do |k, v|
-        if v != nil
-          items[k] =v
-        end
-      end
-      result = dynamo.put_item(
-          table_name: table_name,
-          item: items,
-          return_values: "ALL_OLD"
-      )
-      !result.error
+    def self.key_scheme
+      @key_scheme ||= new.describe_table[:table][:key_schema]
+    end
+
+    def reload!
+      reset_changes
     end
 
     def describe_table
-      @scheme ||= dynamo.describe_table(table_name: table_name)
+      self.class.send(:describe).execute
     end
 
-    def global_indexes
-      describe_table.data[:table][:key_schema]
+    def indexes
+      scheme = self.class.key_scheme.map do |scheme|
+        [scheme[:attribute_name], send(scheme[:attribute_name])]
+      end
+      scheme.to_h
     end
 
     def dynamo
@@ -94,7 +103,8 @@ module Dymos
       @attributes[name.to_sym]
     end
 
-    def write_attribute(name, value)
+    def write_attribute(name, value, initialize=false)
+      self.send "#{name}_will_change!" unless (initialize or value == @attributes[name.to_sym])
       @attributes[name.to_sym] = value
     end
 

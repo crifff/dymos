@@ -28,5 +28,9 @@ module Dymos
     def scan
       Dymos::Query::Scan.new(:scan, table_name, class_name)
     end
+
+    def delete
+      Dymos::Query::DeleteItem.new(:delete_item, table_name, class_name)
+    end
   end
 end

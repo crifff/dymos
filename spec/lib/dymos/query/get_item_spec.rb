@@ -27,6 +27,7 @@ describe Dymos::Query::GetItem do
     class TestItem < Dymos::Model
       table :test_get_item
       field :id, :string
+      field :category_id, :number
     end
   end
 

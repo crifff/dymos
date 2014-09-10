@@ -46,6 +46,7 @@ describe Dymos::Model do
     client.put_item(table_name: 'dummy', item: {id: 'hoge', name: '太郎', list: Set['a', 'b', 'c']})
     client.put_item(table_name: 'dummy', item: {id: 'fuga', name: '次郎'})
     client.put_item(table_name: 'dummy', item: {id: 'piyo', name: '三郎'})
+    client.put_item(table_name: 'dummy', item: {id: 'musashi', name: '巴'}) #削除用
 
     client.delete_table(table_name: 'post') if client.list_tables[:table_names].include?('post')
     client.create_table(
@@ -65,6 +66,36 @@ describe Dymos::Model do
   end
 
 #  let(:model) { Dummy.new }
+
+  describe :fields do
+    it do
+      expect(DummyUser.fields.keys).to eq([:id, :name, :email, :list])
+    end
+  end
+  describe "クラスマクロのデフォルト値" do
+    it "設定されていなければnilを返す" do
+      expect(DummyPost.new.id).to eq(nil)
+    end
+
+    class DummyModel < Dymos::Model
+      field :id, :number, default: 0
+      field :body, :string, default: "none"
+    end
+
+    it "idは0を返す" do
+      expect(DummyModel.new.id).to eq(0)
+    end
+
+    it "bodyは'none'を返す" do
+      expect(DummyModel.new.body).to eq('none')
+    end
+
+    it "上書きすることができる" do
+      model = DummyModel.new
+      model.id=1
+      expect(model.id).to eq(1)
+    end
+  end
 
   describe :new do
 
@@ -138,23 +169,21 @@ describe Dymos::Model do
       end
     end
 
-    describe :global_indexes do
+    describe :key_scheme do
       it "キー情報" do
-        model = DummyUser.new
-        expect(model.global_indexes.first[:attribute_name]).to eq('id')
-        expect(model.global_indexes.first[:key_type]).to eq('HASH')
+        expect(DummyUser.key_scheme.first[:attribute_name]).to eq('id')
+        expect(DummyUser.key_scheme.first[:key_type]).to eq('HASH')
 
-        model = DummyPost.new
-        expect(model.global_indexes.first[:attribute_name]).to eq('id')
-        expect(model.global_indexes.first[:key_type]).to eq('HASH')
-        expect(model.global_indexes.last[:attribute_name]).to eq('timestamp')
-        expect(model.global_indexes.last[:key_type]).to eq('RANGE')
+        expect(DummyPost.key_scheme.first[:attribute_name]).to eq('id')
+        expect(DummyPost.key_scheme.first[:key_type]).to eq('HASH')
+        expect(DummyPost.key_scheme.last[:attribute_name]).to eq('timestamp')
+        expect(DummyPost.key_scheme.last[:key_type]).to eq('RANGE')
       end
     end
 
     describe :find do
       it "ユーザを抽出" do
-        user = DummyUser.get.key(id:'hoge').execute
+        user = DummyUser.get.key(id: 'hoge').execute
         expect(user.id).to eq('hoge')
         expect(user.name).to eq('太郎')
       end
@@ -173,7 +202,7 @@ describe Dymos::Model do
     describe :all do
       it "すべてのユーザを抽出" do
         users = DummyUser.all
-        expect(users.size).to eq(4)
+        expect(users.size).to eq(5)
       end
     end
 
@@ -182,6 +211,59 @@ describe Dymos::Model do
         user = DummyUser.find('hoge')
         expect(user.id).to eq('hoge')
         expect(user.name).to eq('太郎')
+      end
+    end
+  end
+
+  describe "変更検知" do
+    class DummyModel < Dymos::Model
+      field :id, :number, default: 0
+      field :body, :string, default: "none"
+    end
+
+    it "新規モデル" do
+      user = DummyModel.new
+      expect(user.changes).to eq({})
+      expect(user.changed?).to eq(false)
+      user.id = 1
+      expect(user.changed?).to eq(true)
+      expect(user.changes).to eq({"id" => [0, 1]})
+      user.body = "hoge"
+      expect(user.changes).to eq({"id" => [0, 1], "body" => ['none', 'hoge']})
+    end
+
+    describe "DBから引いたモデル" do
+      it "" do
+        user = DummyUser.get.key(id: 'hoge').execute
+        expect(user.changes).to eq({})
+        expect(user.changed?).to eq(false)
+        user.id = 1
+        expect(user.changed?).to eq(true)
+        expect(user.id_changed?).to eq(true)
+        expect(user.changes).to eq({"id" => ["hoge", 1]})
+      end
+    end
+  end
+
+  describe :persistence do
+    describe "新規モデル" do
+      it do
+        user = DummyUser.new
+        expect(user.new_record?).to eq(true)
+        expect(user.destroyed?).to eq(false)
+        expect(user.persisted?).to eq(false)
+      end
+
+      describe "DBから引いたモデル" do
+        it do
+          user = DummyUser.get.key(id: 'musashi').execute
+          expect(user.new_record?).to eq(false)
+          expect(user.destroyed?).to eq(false)
+          expect(user.persisted?).to eq(true)
+          user.delete
+          expect(user.destroyed?).to eq(true)
+          expect(DummyUser.get.key(id: 'musashi').execute).to eq(nil)
+        end
       end
     end
   end

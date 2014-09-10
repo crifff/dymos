@@ -46,6 +46,10 @@ describe Dymos::Query::Scan do
       expect(res.first.metadata).to eq(count: 5, scanned_count: 5, last_evaluated_key: nil, consumed_capacity: nil)
     end
 
+
+    it :query do
+      expect(TestItem.scan.limit(100).exclusive_start_key('hoge').query).to eq(table_name: "test_get_item", exclusive_start_key:"hoge", limit: 100)
+    end
   end
 end
 

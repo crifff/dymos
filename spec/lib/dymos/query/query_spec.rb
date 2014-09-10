@@ -48,6 +48,7 @@ describe Dymos::Query::Query do
     class TestItem < Dymos::Model
       table :test_query_item
       field :id, :string
+      field :other_id, :number
     end
   end
 

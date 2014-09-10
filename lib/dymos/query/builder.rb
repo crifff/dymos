@@ -53,7 +53,8 @@ module Dymos
             obj.metadata = extract(res, :attributes)
             obj
           elsif res.respond_to? :data
-            if res.data.respond_to? :item # get_item
+            if res.data.respond_to? :item # get_item, delete_item
+              return nil if res.data.item.nil?
               obj = Object.const_get(@class_name).new(res.data.item)
               obj.metadata = extract(res, :item)
               obj

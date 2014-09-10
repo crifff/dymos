@@ -28,6 +28,10 @@ module Dymos
       define_method("#{attr}=") { |value| write_attribute(attr, value) }
     end
 
+    def self.fields
+      @fields
+    end
+
     def self.table(name)
       define_singleton_method('table_name') { name }
       define_method('table_name') { name }
@@ -75,7 +79,7 @@ module Dymos
 
     def indexes
       scheme = self.class.key_scheme.map do |scheme|
-         [scheme[:attribute_name], send(scheme[:attribute_name])]
+        [scheme[:attribute_name], send(scheme[:attribute_name])]
       end
       scheme.to_h
     end

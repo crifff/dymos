@@ -67,6 +67,11 @@ describe Dymos::Model do
 
 #  let(:model) { Dummy.new }
 
+  describe :fields do
+    it do
+      expect(DummyUser.fields.keys).to eq([:id, :name, :email, :list])
+    end
+  end
   describe "クラスマクロのデフォルト値" do
     it "設定されていなければnilを返す" do
       expect(DummyPost.new.id).to eq(nil)

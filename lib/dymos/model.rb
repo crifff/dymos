@@ -54,11 +54,15 @@ module Dymos
     end
 
     def self.find(key1, key2=nil)
-      indexes = new.global_indexes
+      indexes = key_scheme
       keys={}
       keys[indexes.first[:attribute_name].to_sym] = key1
       keys[indexes.last[:attribute_name].to_sym] = key2 if indexes.size > 1
       self.get.key(keys).execute
+    end
+
+    def self.key_scheme
+      @key_scheme ||= new.describe_table[:table][:key_schema]
     end
 
     def reload!
@@ -69,8 +73,11 @@ module Dymos
       self.class.send(:describe).execute
     end
 
-    def global_indexes
-      describe_table[:table][:key_schema]
+    def indexes
+      scheme = self.class.key_scheme.map do |scheme|
+         [scheme[:attribute_name], send(scheme[:attribute_name])]
+      end
+      scheme.to_h
     end
 
     def dynamo

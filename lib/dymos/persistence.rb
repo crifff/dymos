@@ -30,7 +30,7 @@ module Dymos
     end
 
     def delete
-      self.class.delete if persisted?
+      self.class.delete.key(indexes).execute if persisted?
       @destroyed = true
       freeze
     end

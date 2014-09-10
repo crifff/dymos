@@ -5,6 +5,7 @@ module Dymos
   class Model
     include ActiveModel::Model
     include ActiveModel::Dirty
+    include Dymos::Persistence
     extend Dymos::Command
     attr_accessor :metadata
 
@@ -60,32 +61,16 @@ module Dymos
       self.get.key(keys).execute
     end
 
-    def save
-      items = {}
-      attributes.each do |k, v|
-        if v != nil
-          items[k] =v
-        end
-      end
-      result = dynamo.put_item(
-          table_name: table_name,
-          item: items,
-          return_values: "ALL_OLD"
-      )
-      changes_applied
-      !result.error
-    end
-
     def reload!
       reset_changes
     end
 
     def describe_table
-      @scheme ||= dynamo.describe_table(table_name: table_name)
+      self.class.send(:describe).execute
     end
 
     def global_indexes
-      describe_table.data[:table][:key_schema]
+      describe_table[:table][:key_schema]
     end
 
     def dynamo

@@ -10,6 +10,7 @@ require "dymos/query/scan"
 require "dymos/query/query"
 require "dymos/attribute"
 require "dymos/command"
+require "dymos/persistence"
 require "dymos/model"
 require "dymos/version"
 

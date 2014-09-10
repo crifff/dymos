@@ -45,6 +45,7 @@ module Dymos
             res.data[:items].map do |datum|
               obj = Object.const_get(@class_name).new(datum)
               obj.metadata = metadata
+              obj.new_record = false
               obj
             end
           elsif res.data.respond_to? :attributes # put_item, update_item
@@ -57,6 +58,7 @@ module Dymos
               return nil if res.data.item.nil?
               obj = Object.const_get(@class_name).new(res.data.item)
               obj.metadata = extract(res, :item)
+              obj.new_record = false
               obj
             else
               res.data.to_hash # describe

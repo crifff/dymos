@@ -240,5 +240,19 @@ describe Dymos::Model do
       end
     end
   end
+
+  describe :persistence do
+    it :new_record? do
+      user = DummyUser.new
+      expect(user.new_record?).to eq(true)
+      expect(user.destroyed?).to eq(false)
+      expect(user.persisted?).to eq(false)
+
+      user = DummyUser.get.key(id: 'hoge').execute
+      expect(user.new_record?).to eq(false)
+      expect(user.destroyed?).to eq(false)
+      expect(user.persisted?).to eq(true)
+    end
+  end
 end
 

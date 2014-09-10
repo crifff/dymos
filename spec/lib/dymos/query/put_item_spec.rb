@@ -73,15 +73,16 @@ describe Dymos::Query::PutItem do
     #                             })
     # end
 
-    # it "条件ありput_item実行 成功すると古いデータを返す" do
-    #   query = TestPutItem.put.item(id: "hoge", name: "次郎").expected(name: "== 太郎")
-    #   result = query.execute client
-    #   expect(result.attributes).to eq({id: "hoge", name: "太郎"})
-    # end
+    it "条件ありput_item実行 成功すると古いデータを返す" do
+      query = TestItem.put.item(id: "hoge", name: "次郎").expected(name: "== 太郎")
+      result = query.execute client
+      expect(result.attributes).to eq({id: "hoge", name: "太郎"})
+      expect(result.metadata).to eq(consumed_capacity: nil, item_collection_metrics: nil)
+    end
 
     describe "条件指定" do
       it "undefined operator" do
-        expect{TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "= 1")}.to raise_error(ArgumentError)
+        expect { TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "= 1") }.to raise_error(ArgumentError)
       end
 
       describe :== do
@@ -95,6 +96,7 @@ describe Dymos::Query::PutItem do
         it :execute do
           result = query.execute client
           expect(result.attributes).to eq({id: "fuga", category_id: 1})
+          expect(result.metadata).to eq(consumed_capacity: nil, item_collection_metrics: nil)
         end
         it :error do
           query = TestItem.put.item(id: "fuga", category_id: 1).expected(category_id: "== 2")

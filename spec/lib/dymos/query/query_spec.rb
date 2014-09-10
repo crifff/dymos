@@ -80,6 +80,7 @@ describe Dymos::Query::Query do
         it :execute do
           res = query.execute client
           expect(res.size).to eq(3)
+          expect(res.first.metadata).to eq(count: 3, scanned_count: 3, last_evaluated_key: nil, consumed_capacity: nil)
         end
 
 

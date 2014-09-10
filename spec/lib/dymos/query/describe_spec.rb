@@ -38,7 +38,8 @@ describe Dymos::Query::Describe do
     end
 
     it :execute do
-      expect(TestItem.describe.execute[:table][:attribute_definitions]).to eq([{:attribute_name => "id", :attribute_type => "S"}, {:attribute_name => "category_id", :attribute_type => "N"}])
+      result=TestItem.describe.execute
+      expect(result[:table][:attribute_definitions]).to eq([{:attribute_name => "id", :attribute_type => "S"}, {:attribute_name => "category_id", :attribute_type => "N"}])
     end
 
   end

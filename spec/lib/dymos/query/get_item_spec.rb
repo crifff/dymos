@@ -43,7 +43,7 @@ describe Dymos::Query::GetItem do
         # p client.scan(table_name: "test_get_item")
         res = query.execute client
         expect(res.id).to eq('hoge')
-
+        expect(res.metadata).to eq(consumed_capacity: nil)
 
         # expect(res).to eq({})
         # p client.scan(table_name:"test_get_item")

@@ -12,8 +12,14 @@ module Dymos
       super
     end
 
-    def self.field(attr, type = :string)
-      define_method(attr) { read_attribute(attr) }
+    def self.field(attr, type, default: nil)
+      @fields ||= {}
+      @fields[attr]={
+          type: type,
+          default: default
+      }
+
+      define_method(attr) { read_attribute(attr) || default }
       define_method("#{attr}_type") { type }
       define_method("#{attr}?") { !read_attribute(attr).nil? }
       define_method("#{attr}=") { |value| write_attribute(attr, value) }

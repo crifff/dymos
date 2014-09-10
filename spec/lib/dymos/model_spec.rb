@@ -66,6 +66,31 @@ describe Dymos::Model do
 
 #  let(:model) { Dummy.new }
 
+  describe "クラスマクロのデフォルト値" do
+    it "設定されていなければnilを返す" do
+      expect(DummyPost.new.id).to eq(nil)
+    end
+
+    class DummyModel < Dymos::Model
+      field :id, :number, default: 0
+      field :body, :string, default: "none"
+    end
+
+    it "idは0を返す" do
+      expect(DummyModel.new.id).to eq(0)
+    end
+
+    it "bodyは'none'を返す" do
+      expect(DummyModel.new.body).to eq('none')
+    end
+
+    it "上書きすることができる" do
+      model = DummyModel.new
+      model.id=1
+      expect(model.id).to eq(1)
+    end
+  end
+
   describe :new do
 
     describe :field do
@@ -154,7 +179,7 @@ describe Dymos::Model do
 
     describe :find do
       it "ユーザを抽出" do
-        user = DummyUser.get.key(id:'hoge').execute
+        user = DummyUser.get.key(id: 'hoge').execute
         expect(user.id).to eq('hoge')
         expect(user.name).to eq('太郎')
       end

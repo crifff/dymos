@@ -41,7 +41,9 @@ describe Dymos::Query::Scan do
     end
 
     it :execute do
-      expect(TestItem.scan.execute.size).to eq(5)
+      res=TestItem.scan.execute
+      expect(res.size).to eq(5)
+      expect(res.first.metadata).to eq(count: 5, scanned_count: 5, last_evaluated_key: nil, consumed_capacity: nil)
     end
 
   end

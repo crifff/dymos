@@ -5,6 +5,7 @@ module Dymos
   class Model
     include ActiveModel::Model
     extend Dymos::Command
+    attr_accessor :metadata
 
     def initialize(params={})
       @attributes = {}

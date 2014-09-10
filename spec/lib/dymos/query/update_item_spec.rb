@@ -109,6 +109,7 @@ describe Dymos::Query::UpdateItem do
             it "成功すると新しいアイテムを返す" do
               res = query.execute client
               expect(res.name).to eq("百合子")
+              expect(res.metadata[:consumed_capacity]).to eq(nil)
             end
           end
         end

@@ -210,5 +210,35 @@ describe Dymos::Model do
       end
     end
   end
+
+  describe "変更検知" do
+    class DummyModel < Dymos::Model
+      field :id, :number, default: 0
+      field :body, :string, default: "none"
+    end
+
+    it "新規モデル" do
+      user = DummyModel.new
+      expect(user.changes).to eq({})
+      expect(user.changed?).to eq(false)
+      user.id = 1
+      expect(user.changed?).to eq(true)
+      expect(user.changes).to eq({"id" => [0, 1]})
+      user.body = "hoge"
+      expect(user.changes).to eq({"id" => [0, 1], "body" => ['none', 'hoge']})
+    end
+
+    describe "DBから引いたモデル" do
+      it "" do
+        user = DummyUser.get.key(id: 'hoge').execute
+        expect(user.changes).to eq({})
+        expect(user.changed?).to eq(false)
+        user.id = 1
+        expect(user.changed?).to eq(true)
+        expect(user.id_changed?).to eq(true)
+        expect(user.changes).to eq({"id" => ["hoge", 1]})
+      end
+    end
+  end
 end
 

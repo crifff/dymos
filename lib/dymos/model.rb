@@ -4,11 +4,13 @@ require 'active_model'
 module Dymos
   class Model
     include ActiveModel::Model
+    include ActiveModel::Dirty
     extend Dymos::Command
     attr_accessor :metadata
 
     def initialize(params={})
-      @attributes = {}
+      @attributes={}
+      send :attributes=, params, true
       super
     end
 
@@ -18,7 +20,7 @@ module Dymos
           type: type,
           default: default
       }
-
+      define_attribute_methods attr
       define_method(attr) { read_attribute(attr) || default }
       define_method("#{attr}_type") { type }
       define_method("#{attr}?") { !read_attribute(attr).nil? }
@@ -30,10 +32,10 @@ module Dymos
       define_method('table_name') { name }
     end
 
-    def attributes=(attributes = {})
+    def attributes=(attributes = {}, initialize = false)
       if attributes
         attributes.each do |attr, value|
-          write_attribute(attr, value)
+          write_attribute(attr, value, initialize)
         end
       end
     end
@@ -70,7 +72,12 @@ module Dymos
           item: items,
           return_values: "ALL_OLD"
       )
+      changes_applied
       !result.error
+    end
+
+    def reload!
+      reset_changes
     end
 
     def describe_table
@@ -100,7 +107,8 @@ module Dymos
       @attributes[name.to_sym]
     end
 
-    def write_attribute(name, value)
+    def write_attribute(name, value, initialize=false)
+      self.send "#{name}_will_change!" unless (initialize or value == @attributes[name.to_sym])
       @attributes[name.to_sym] = value
     end
 

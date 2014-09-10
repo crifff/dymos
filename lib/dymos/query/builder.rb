@@ -43,21 +43,18 @@ module Dymos
           if res.data.respond_to? :items # scan, query
             metadata = extract(res, :items)
             res.data[:items].map do |datum|
-              obj = Object.const_get(@class_name).new
-              obj.attributes = datum
+              obj = Object.const_get(@class_name).new(datum)
               obj.metadata = metadata
               obj
             end
           elsif res.data.respond_to? :attributes # put_item, update_item
             return nil if res.attributes.nil?
-            obj = Object.const_get(@class_name).new
-            obj.attributes = res.attributes
+            obj = Object.const_get(@class_name).new(res.attributes)
             obj.metadata = extract(res, :attributes)
             obj
           elsif res.respond_to? :data
             if res.data.respond_to? :item # get_item
-              obj = Object.const_get(@class_name).new
-              obj.attributes = res.data.item
+              obj = Object.const_get(@class_name).new(res.data.item)
               obj.metadata = extract(res, :item)
               obj
             else

@@ -25,6 +25,7 @@ describe Dymos::Query::PutItem do
     class TestItem < Dymos::Model
       table :test_put_item
       field :id, :string
+      field :name, :string
     end
   end
 

@@ -47,14 +47,10 @@ module Dymos
     end
 
     def _create_record()
-      result = dynamo.put_item(
-          table_name: table_name,
-          item: attributes,
-          return_values: "ALL_OLD"
-      )
+      result = self.class.put.item(attributes).execute
       changes_applied
       @new_record = false
-      !result.error
+      result
     end
 
   end

@@ -70,10 +70,9 @@ module Dymos
 
       end
 
-      def extract(res, ignoreKey)
-        keys = res.data.members.reject { |a| a == ignoreKey }
-        array=keys.map { |k| [k, res.data[k]] }
-        array.reduce({}) { |hash, value| hash.merge({value[0] => value[1]}) }
+      def extract(res, ignore_key)
+        keys = res.data.members.reject { |a| a == ignore_key }
+        keys.map { |k| [k, res.data[k]] }.to_h
       end
     end
   end

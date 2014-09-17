@@ -21,7 +21,7 @@ module Dymos
 
     def save(*)
       create_or_update
-    rescue
+    rescue => e
       false
     end
 
@@ -43,10 +43,17 @@ module Dymos
     end
 
     def _update_record()
-      _create_record
+      send :updated_at=, Time.new.iso8601 if respond_to? :updated_at
+      _execute
     end
 
     def _create_record()
+      send :created_at=, Time.new.iso8601 if respond_to? :created_at
+      send :updated_at=, Time.new.iso8601 if respond_to? :updated_at
+      _execute
+    end
+
+    def _execute()
       result = self.class.put.item(attributes).execute
       changes_applied
       @new_record = false

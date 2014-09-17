@@ -16,3 +16,25 @@ require "dymos/version"
 
 module Dymos
 end
+
+module Aws
+  module DynamoDB
+    class AttributeValue
+      class Marshaler
+        def format(obj)
+          case obj
+            when String then { s: obj }
+            when Time then { s: obj.iso8601 }
+            when Numeric then { n: obj.to_s }
+            when StringIO, IO then { b: obj.read }
+            when Set then format_set(obj)
+            else
+              msg = "unsupported type, expected Set, String, Numeric, or "
+              msg << "IO object, got #{obj.class.name}"
+              raise ArgumentError, msg
+          end
+        end
+      end
+    end
+  end
+end

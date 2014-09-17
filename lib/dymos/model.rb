@@ -25,7 +25,7 @@ module Dymos
       define_method(attr) { read_attribute(attr) || default }
       define_method("#{attr}_type") { type }
       define_method("#{attr}?") { !read_attribute(attr).nil? }
-      define_method("#{attr}=") { |value| write_attribute(attr, value) }
+      define_method("#{attr}=") { |value, initialize=false| write_attribute(attr, value, initialize) }
     end
 
     def self.fields
@@ -40,7 +40,7 @@ module Dymos
     def attributes=(attributes = {}, initialize = false)
       if attributes
         attributes.each do |attr, value|
-          write_attribute(attr, value, initialize)
+          send("#{attr}=", value, initialize) if respond_to? "#{attr}="
         end
       end
     end
@@ -48,7 +48,7 @@ module Dymos
     def attributes
       attrs = {}
       @attributes.keys.each do |name|
-        attrs[name] = read_attribute(name)
+        attrs[name] = send "#{name}" if respond_to? "#{name}"
       end
       attrs
     end

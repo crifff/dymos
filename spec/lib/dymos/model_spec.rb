@@ -6,6 +6,9 @@ describe Dymos::Model do
     field :email, :string
     field :list, :string_set
 
+    field :created_at, :time
+    field :updated_at, :time
+
     validates :id, :presence => true
     validates :name, :presence => true, length: {maximum: 8}
     validates :email, :presence => true, format: {with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/i}
@@ -32,17 +35,17 @@ describe Dymos::Model do
 
     client.delete_table(table_name: 'dummy') if client.list_tables[:table_names].include?('dummy')
     client.create_table(
-        table_name: 'dummy',
-        attribute_definitions: [
-            {attribute_name: 'id', attribute_type: 'S'}
-        ],
-        key_schema: [
-            {attribute_name: 'id', key_type: 'HASH'}
-        ],
-        provisioned_throughput: {
-            read_capacity_units: 1,
-            write_capacity_units: 1,
-        })
+            table_name: 'dummy',
+            attribute_definitions: [
+                {attribute_name: 'id', attribute_type: 'S'}
+            ],
+            key_schema: [
+                {attribute_name: 'id', key_type: 'HASH'}
+            ],
+            provisioned_throughput: {
+                read_capacity_units: 1,
+                write_capacity_units: 1,
+            })
     client.put_item(table_name: 'dummy', item: {id: 'hoge', name: '太郎', list: Set['a', 'b', 'c']})
     client.put_item(table_name: 'dummy', item: {id: 'fuga', name: '次郎'})
     client.put_item(table_name: 'dummy', item: {id: 'piyo', name: '三郎'})
@@ -50,26 +53,26 @@ describe Dymos::Model do
 
     client.delete_table(table_name: 'post') if client.list_tables[:table_names].include?('post')
     client.create_table(
-        table_name: 'post',
-        attribute_definitions: [
-            {attribute_name: 'id', attribute_type: 'S'},
-            {attribute_name: 'timestamp', attribute_type: 'N'},
-        ],
-        key_schema: [
-            {attribute_name: 'id', key_type: 'HASH'},
-            {attribute_name: 'timestamp', key_type: 'RANGE'},
-        ],
-        provisioned_throughput: {
-            read_capacity_units: 1,
-            write_capacity_units: 1,
-        })
+            table_name: 'post',
+            attribute_definitions: [
+                {attribute_name: 'id', attribute_type: 'S'},
+                {attribute_name: 'timestamp', attribute_type: 'N'},
+            ],
+            key_schema: [
+                {attribute_name: 'id', key_type: 'HASH'},
+                {attribute_name: 'timestamp', key_type: 'RANGE'},
+            ],
+            provisioned_throughput: {
+                read_capacity_units: 1,
+                write_capacity_units: 1,
+            })
   end
 
 #  let(:model) { Dummy.new }
 
   describe :fields do
     it do
-      expect(DummyUser.fields.keys).to eq([:id, :name, :email, :list])
+      expect(DummyUser.fields.keys).to eq([:id, :name, :email, :list, :created_at, :updated_at])
     end
   end
   describe "クラスマクロのデフォルト値" do
@@ -189,13 +192,34 @@ describe Dymos::Model do
       end
     end
 
-    describe :save do
+    describe :save, :order => :defined do
       it '書き込み' do
         user = DummyUser.new
         user.id = 'aiueo'
         user.name = '四郎'
-        result = user.save
+        user.email = 'hoge@sample.net'
+        expect(user.created_at).to eq(nil)
+        now = Time.now
+        Timecop.freeze(now)
+        result = user.save!
         expect(result).to eq(true)
+        expect(user.created_at.to_s).to eq(now.to_s)
+        expect(user.updated_at.to_s).to eq(now.to_s)
+      end
+
+      it '更新' do
+        user = DummyUser.new
+        user.id = 'aiueo'
+        user.name = '四郎'
+        user.email = 'hoge@sample.net'
+        now = Time.now
+        Timecop.freeze(now)
+        user.save!
+        user.email = 'hoge@sample.net'
+        Timecop.freeze(now+1)
+        user.save!
+        expect(user.created_at.to_s).to eq(now.to_s)
+        expect(user.updated_at.to_s).not_to eq(now.to_s)
       end
     end
 

@@ -22,15 +22,27 @@ module Dymos
           default: default
       }
       define_attribute_methods attr
-      define_method(attr) { read_attribute(attr) || default }
+      define_method(attr) {|raw=false|
+        val=read_attribute(attr) || default
+        return val if raw
+        if type == :time && val.present?
+          Time.parse val
+        else
+          val
+        end
+      }
       define_method("#{attr}_type") { type }
       define_method("#{attr}?") { !read_attribute(attr).nil? }
-      define_method("#{attr}=") { |value| write_attribute(attr, value) }
+      define_method("#{attr}=") do |value, initialize=false|
+        value = value.iso8601 if self.class.fields.include?(attr) && value.is_a?(Time)
+        write_attribute(attr, value, initialize)
+      end
     end
 
     def self.fields
       @fields
     end
+
 
     def self.table(name)
       define_singleton_method('table_name') { name }
@@ -40,15 +52,15 @@ module Dymos
     def attributes=(attributes = {}, initialize = false)
       if attributes
         attributes.each do |attr, value|
-          write_attribute(attr, value, initialize)
+          send("#{attr}=", value, initialize) if respond_to? "#{attr}="
         end
       end
     end
 
-    def attributes
+    def attributes(raw=false)
       attrs = {}
       @attributes.keys.each do |name|
-        attrs[name] = read_attribute(name)
+        attrs[name] = send "#{name}", raw if respond_to? "#{name}"
       end
       attrs
     end

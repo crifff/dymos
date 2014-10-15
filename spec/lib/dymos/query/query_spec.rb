@@ -59,7 +59,8 @@ describe Dymos::Query::Query do
           id: "== hoge",
           category_id:"== 0"
       ).execute
-      expect(items.first.attributes).to eq({id:'hoge',other_id:1})
+      expect(items.first.id).to eq('hoge')
+      expect(items.first.other_id).to eq(1)
     end
 
     it "ハッシュのみ検索" do

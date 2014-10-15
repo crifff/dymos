@@ -48,12 +48,26 @@ describe Dymos::Query::Query do
     class TestItem < Dymos::Model
       table :test_query_item
       field :id, :string
-      field :other_id, :number
+      field :other_id, :integer
     end
   end
 
   let(:client) { Aws::DynamoDB::Client.new }
   describe :put_item do
+    it "ハッシュ+レンジ検索" do
+      items = TestItem.query.key_conditions(
+          id: "== hoge",
+          category_id:"== 0"
+      ).execute
+      expect(items.first.attributes).to eq({id:'hoge',other_id:1})
+    end
+
+    it "ハッシュのみ検索" do
+      items = TestItem.query.key_conditions(
+          id: "== hoge"
+      ).execute
+      expect(items.length).to eq(6)
+    end
     describe "クエリ生成" do
       describe "グローバルセカンダリインデックスを利用した検索" do
         let(:query) {

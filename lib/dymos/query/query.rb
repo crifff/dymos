@@ -26,12 +26,15 @@ module Dymos
       end
 
       def query
-        {
+        data = {
             table_name: @table_name.to_s,
-            index_name: @index_name.to_s,
             key_conditions: @key,
             consistent_read: false
         }
+        if @index_name.present?
+          data[:index_name] = @index_name.to_s
+        end
+        data
       end
     end
   end

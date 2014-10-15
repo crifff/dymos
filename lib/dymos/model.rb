@@ -22,11 +22,13 @@ module Dymos
           default: default
       }
       define_attribute_methods attr
-      define_method(attr) {|raw=false|
+      define_method(attr) { |raw=false|
         val=read_attribute(attr) || default
         return val if raw
         if type == :time && val.present?
           Time.parse val
+        elsif type == :integer && val.present?
+          val.to_i
         else
           val
         end

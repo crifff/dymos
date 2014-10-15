@@ -5,6 +5,7 @@ describe Dymos::Model do
     field :name, :string
     field :email, :string
     field :list, :string_set
+    field :count, :integer
 
     field :created_at, :time
     field :updated_at, :time
@@ -23,7 +24,7 @@ describe Dymos::Model do
   end
 
   def sample_user_hash
-    {id: 'hoge', name: '太郎', email: 'hoge@example.net', list: Set['a', 'b', 'c']}
+    {id: 'hoge', name: '太郎', email: 'hoge@example.net', count: 10, list: Set['a', 'b', 'c']}
   end
 
   before :all do
@@ -35,17 +36,17 @@ describe Dymos::Model do
 
     client.delete_table(table_name: 'dummy') if client.list_tables[:table_names].include?('dummy')
     client.create_table(
-            table_name: 'dummy',
-            attribute_definitions: [
-                {attribute_name: 'id', attribute_type: 'S'}
-            ],
-            key_schema: [
-                {attribute_name: 'id', key_type: 'HASH'}
-            ],
-            provisioned_throughput: {
-                read_capacity_units: 1,
-                write_capacity_units: 1,
-            })
+        table_name: 'dummy',
+        attribute_definitions: [
+            {attribute_name: 'id', attribute_type: 'S'}
+        ],
+        key_schema: [
+            {attribute_name: 'id', key_type: 'HASH'}
+        ],
+        provisioned_throughput: {
+            read_capacity_units: 1,
+            write_capacity_units: 1,
+        })
     client.put_item(table_name: 'dummy', item: {id: 'hoge', name: '太郎', list: Set['a', 'b', 'c']})
     client.put_item(table_name: 'dummy', item: {id: 'fuga', name: '次郎'})
     client.put_item(table_name: 'dummy', item: {id: 'piyo', name: '三郎'})
@@ -53,26 +54,26 @@ describe Dymos::Model do
 
     client.delete_table(table_name: 'post') if client.list_tables[:table_names].include?('post')
     client.create_table(
-            table_name: 'post',
-            attribute_definitions: [
-                {attribute_name: 'id', attribute_type: 'S'},
-                {attribute_name: 'timestamp', attribute_type: 'N'},
-            ],
-            key_schema: [
-                {attribute_name: 'id', key_type: 'HASH'},
-                {attribute_name: 'timestamp', key_type: 'RANGE'},
-            ],
-            provisioned_throughput: {
-                read_capacity_units: 1,
-                write_capacity_units: 1,
-            })
+        table_name: 'post',
+        attribute_definitions: [
+            {attribute_name: 'id', attribute_type: 'S'},
+            {attribute_name: 'timestamp', attribute_type: 'N'},
+        ],
+        key_schema: [
+            {attribute_name: 'id', key_type: 'HASH'},
+            {attribute_name: 'timestamp', key_type: 'RANGE'},
+        ],
+        provisioned_throughput: {
+            read_capacity_units: 1,
+            write_capacity_units: 1,
+        })
   end
 
 #  let(:model) { Dummy.new }
 
   describe :fields do
     it do
-      expect(DummyUser.fields.keys).to eq([:id, :name, :email, :list, :created_at, :updated_at])
+      expect(DummyUser.fields.keys).to eq([:id, :name, :email, :list, :count, :created_at, :updated_at])
     end
   end
   describe "クラスマクロのデフォルト値" do
@@ -150,6 +151,7 @@ describe Dymos::Model do
       expect(model.id).to eq('hoge')
       expect(model.name).to eq('太郎')
       expect(model.email).to eq('hoge@example.net')
+      expect(model.count).to eq(10)
       expect(model.list).to eq(Set['a', 'b', 'c'])
     end
   end

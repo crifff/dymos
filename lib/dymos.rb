@@ -17,21 +17,17 @@ require "dymos/version"
 module Dymos
 end
 
+#Timeオブジェクト扱いたいのでアラウンドエイリアスで先に捕まえる
 module Aws
   module DynamoDB
     class AttributeValue
       class Marshaler
+        alias :orig_format :format
         def format(obj)
           case obj
-            when String then { s: obj }
             when Time then { s: obj.iso8601 }
-            when Numeric then { n: obj.to_s }
-            when StringIO, IO then { b: obj.read }
-            when Set then format_set(obj)
             else
-              msg = "unsupported type, expected Set, String, Numeric, or "
-              msg << "IO object, got #{obj.class.name}"
-              raise ArgumentError, msg
+              orig_format obj
           end
         end
       end

@@ -22,7 +22,9 @@ describe Dymos::Query::DeleteItem do
     client.put_item(table_name: 'test_delete_item', item: {id: 'hoge', name: '太郎'})
     client.put_item(table_name: 'test_delete_item', item: {id: 'fuga', count: 0})
     client.put_item(table_name: 'test_delete_item', item: {id: 'poyo', name: '可奈'})
+    client.put_item(table_name: 'test_delete_item', item: {id: 'puyo', name: '志保'})
     client.put_item(table_name: 'test_delete_item', item: {id: 'piyo', name: '杏奈', count: 10})
+    client.put_item(table_name: 'test_delete_item', item: {id: 'puni', name: '美奈子', count: 10, text: "hoge"})
 
     class TestItem < Dymos::Model
       table :test_delete_item
@@ -62,6 +64,18 @@ describe Dymos::Query::DeleteItem do
             res = query.execute
             expect(res.id).to eq("fuga")
             expect(TestItem.get.key(id: "fuga").execute).to eq(nil)
+          end
+          it "条件付き2" do
+            query = TestItem.delete.key(id: "puyo").expected(count: 'is_null')
+            res = query.execute
+            expect(res.id).to eq("puyo")
+            expect(TestItem.get.key(id: "puyo").execute).to eq(nil)
+          end
+          it "複数条件条件付き" do
+            query = TestItem.delete.key(id: "puni").expected(count: '== 10', text: '== hoge')
+            res = query.execute
+            expect(res.id).to eq("puni")
+            expect(TestItem.get.key(id: "puni").execute).to eq(nil)
           end
           it "条件付き失敗" do
             query = TestItem.delete.key(id: "piyo").expected(count: "== 1")

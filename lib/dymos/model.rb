@@ -15,7 +15,7 @@ module Dymos
       super
     end
 
-    def self.field(attr, type, default: nil)
+    def self.field(attr, type, default: nil, desc:nil)
       @fields ||= {}
       @fields[attr]={
           type: type,
@@ -34,6 +34,7 @@ module Dymos
         end
       }
       define_method("#{attr}_type") { type }
+      define_method("#{attr}_desc") { desc }
       define_method("#{attr}?") { !read_attribute(attr).nil? }
       define_method("#{attr}=") do |value, initialize=false|
         value = value.iso8601 if self.class.fields.include?(attr) && value.is_a?(Time)

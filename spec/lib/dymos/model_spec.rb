@@ -1,8 +1,8 @@
 describe Dymos::Model do
   class DummyUser < Dymos::Model
     table :dummy
-    field :id, :string
-    field :name, :string
+    field :id, :string, desc: 'hoge'
+    field :name, :string, desc: '名前'
     field :email, :string
     field :list, :string_set
     field :count, :integer
@@ -112,6 +112,7 @@ describe Dymos::Model do
         model.name = '太郎'
         expect(model.name).to eq('太郎')
         expect(model.name?).to eq(true)
+        expect(model.name_desc).to eq('名前')
         expect(model.name_type).to eq(:string)
 
 

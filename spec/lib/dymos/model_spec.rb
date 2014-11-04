@@ -1,4 +1,16 @@
 describe Dymos::Model do
+  describe "不正なfield" do
+    it "末尾に?は使えない" do
+      expect { Class.new(Dymos::Model) do
+        field "hoge?", :string
+      end }.to raise_error
+    end
+    it "type:boolには初期値が必須" do
+      expect { Class.new(Dymos::Model) do
+        field "hoge", :bool
+      end }.to raise_error
+    end
+  end
   class DummyUser < Dymos::Model
     table :dummy
     field :id, :string, desc: 'hoge'
@@ -6,6 +18,7 @@ describe Dymos::Model do
     field :email, :string
     field :list, :string_set
     field :count, :integer
+    field :enable, :bool, default: false
 
     field :created_at, :time
     field :updated_at, :time
@@ -51,6 +64,8 @@ describe Dymos::Model do
     client.put_item(table_name: 'dummy', item: {id: 'fuga', name: '次郎'})
     client.put_item(table_name: 'dummy', item: {id: 'piyo', name: '三郎'})
     client.put_item(table_name: 'dummy', item: {id: 'musashi', name: '巴'}) #削除用
+    client.put_item(table_name: 'dummy', item: {id: 'enable_id', name: 'enable', enable:1})
+    client.put_item(table_name: 'dummy', item: {id: 'disable_id', name: 'disable', enable:0})
 
     client.delete_table(table_name: 'post') if client.list_tables[:table_names].include?('post')
     client.create_table(
@@ -73,7 +88,7 @@ describe Dymos::Model do
 
   describe :fields do
     it do
-      expect(DummyUser.fields.keys).to eq([:id, :name, :email, :list, :count, :created_at, :updated_at])
+      expect(DummyUser.fields.keys).to eq([:id, :name, :email, :list, :count, :enable, :created_at, :updated_at])
     end
   end
   describe "クラスマクロのデフォルト値" do
@@ -93,7 +108,12 @@ describe Dymos::Model do
     it "bodyは'none'を返す" do
       expect(DummyModel.new.body).to eq('none')
     end
-
+    it "enable?はfalseを返す" do
+      model = DummyUser.new
+      expect(model.enable?).to eq(false)
+      model.enable = true
+      expect(model.enable?).to eq(true)
+    end
     it "上書きすることができる" do
       model = DummyModel.new
       model.id=1
@@ -201,6 +221,7 @@ describe Dymos::Model do
         user.id = 'aiueo'
         user.name = '四郎'
         user.email = 'hoge@sample.net'
+        user.enable = true
         expect(user.created_at).to eq(nil)
         now = Time.now
         Timecop.freeze(now)
@@ -229,7 +250,7 @@ describe Dymos::Model do
     describe :all do
       it "すべてのユーザを抽出" do
         users = DummyUser.all
-        expect(users.size).to eq(5)
+        expect(users.size).to eq(7)
       end
     end
 
@@ -290,6 +311,14 @@ describe Dymos::Model do
           user.delete
           expect(user.destroyed?).to eq(true)
           expect(DummyUser.get.key(id: 'musashi').execute).to eq(nil)
+        end
+        it 'enableはBoolとして扱われる' do
+          user = DummyUser.get.key(id: 'enable_id').execute
+          expect(user.enable).to eq(true)
+          expect(user.enable?).to eq(true)
+          user = DummyUser.get.key(id: 'disable_id').execute
+          expect(user.enable).to eq(false)
+          expect(user.enable?).to eq(false)
         end
       end
     end

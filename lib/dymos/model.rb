@@ -15,27 +15,42 @@ module Dymos
       super
     end
 
-    def self.field(attr, type, default: nil, desc:nil)
+    def self.field(attr, type, default: nil, desc: nil)
+      fail StandardError('attribute name is invalid') if attr =~ /[\!\?]$/
+      fail StandardError('require "default" option') if(type == :bool && default.nil?)
+
       @fields ||= {}
       @fields[attr]={
-          type: type,
-          default: default
+        type: type,
+        default: default
       }
       define_attribute_methods attr
       define_method(attr) { |raw=false|
-        val=read_attribute(attr) || default
-        return val if raw
-        if type == :time && val.present?
-          Time.parse val
-        elsif type == :integer && val.present?
-          val.to_i
-        else
-          val
+        val = read_attribute(attr) || default
+        return val if raw || !val.present?
+
+        case type
+          when :bool
+            to_b(val)
+          when :time
+            Time.parse val
+          when :integer
+            val.to_i
+          else
+            val
         end
+
       }
       define_method("#{attr}_type") { type }
       define_method("#{attr}_desc") { desc }
-      define_method("#{attr}?") { !read_attribute(attr).nil? }
+      define_method("#{attr}?") do
+        val = self.send attr
+        if type == :bool
+          val
+        else
+          !val.nil?
+        end
+      end
       define_method("#{attr}=") do |value, initialize=false|
         value = value.iso8601 if self.class.fields.include?(attr) && value.is_a?(Time)
         write_attribute(attr, value, initialize)
@@ -121,6 +136,16 @@ module Dymos
     def write_attribute(name, value, initialize=false)
       self.send "#{name}_will_change!" unless (initialize or value == @attributes[name.to_sym])
       @attributes[name.to_sym] = value
+    end
+
+    def to_b(val)
+      compare_value = val.class == String ? val.downcase : val
+      case compare_value
+        when "yes", "true", "ok", true, "1", 1, :true, :ok, :yes
+          true
+        else
+          false
+      end
     end
 
   end

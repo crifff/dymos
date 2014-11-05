@@ -5,9 +5,12 @@ module Dymos
   class Model
     include ActiveModel::Model
     include ActiveModel::Dirty
+    include ActiveModel::Callbacks
     include Dymos::Persistence
     extend Dymos::Command
     attr_accessor :metadata
+
+    define_model_callbacks :save
 
     def initialize(params={})
       @attributes={}
@@ -17,7 +20,7 @@ module Dymos
 
     def self.field(attr, type, default: nil, desc: nil)
       fail StandardError('attribute name is invalid') if attr =~ /[\!\?]$/
-      fail StandardError('require "default" option') if(type == :bool && default.nil?)
+      fail StandardError('require "default" option') if (type == :bool && default.nil?)
 
       @fields ||= {}
       @fields[attr]={
@@ -25,10 +28,12 @@ module Dymos
         default: default
       }
       define_attribute_methods attr
+
+      define_model_callbacks attr
       define_method(attr) { |raw=false|
+        run_callbacks attr do
         val = read_attribute(attr) || default
         return val if raw || !val.present?
-
         case type
           when :bool
             to_b(val)
@@ -38,6 +43,7 @@ module Dymos
             val.to_i
           else
             val
+        end
         end
 
       }
@@ -51,9 +57,13 @@ module Dymos
           !val.nil?
         end
       end
+
+      define_model_callbacks :"set_#{attr}"
       define_method("#{attr}=") do |value, initialize=false|
+        run_callbacks :"set_#{attr}" do
         value = value.iso8601 if self.class.fields.include?(attr) && value.is_a?(Time)
         write_attribute(attr, value, initialize)
+        end
       end
     end
 

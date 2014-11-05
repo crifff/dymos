@@ -20,13 +20,17 @@ module Dymos
     end
 
     def save(*)
-      create_or_update
+      run_callbacks :save do
+        create_or_update
+      end
     rescue => e
       false
     end
 
     def save!(*)
-      create_or_update || raise(Dymos::RecordNotSaved)
+      run_callbacks :save do
+        create_or_update || raise(Dymos::RecordNotSaved)
+      end
     end
 
     def delete

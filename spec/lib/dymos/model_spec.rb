@@ -49,39 +49,39 @@ describe Dymos::Model do
 
     client.delete_table(table_name: 'dummy') if client.list_tables[:table_names].include?('dummy')
     client.create_table(
-        table_name: 'dummy',
-        attribute_definitions: [
-            {attribute_name: 'id', attribute_type: 'S'}
-        ],
-        key_schema: [
-            {attribute_name: 'id', key_type: 'HASH'}
-        ],
-        provisioned_throughput: {
-            read_capacity_units: 1,
-            write_capacity_units: 1,
-        })
+      table_name: 'dummy',
+      attribute_definitions: [
+        {attribute_name: 'id', attribute_type: 'S'}
+      ],
+      key_schema: [
+        {attribute_name: 'id', key_type: 'HASH'}
+      ],
+      provisioned_throughput: {
+        read_capacity_units: 1,
+        write_capacity_units: 1,
+      })
     client.put_item(table_name: 'dummy', item: {id: 'hoge', name: '太郎', list: Set['a', 'b', 'c']})
     client.put_item(table_name: 'dummy', item: {id: 'fuga', name: '次郎'})
     client.put_item(table_name: 'dummy', item: {id: 'piyo', name: '三郎'})
     client.put_item(table_name: 'dummy', item: {id: 'musashi', name: '巴'}) #削除用
-    client.put_item(table_name: 'dummy', item: {id: 'enable_id', name: 'enable', enable:1})
-    client.put_item(table_name: 'dummy', item: {id: 'disable_id', name: 'disable', enable:0})
+    client.put_item(table_name: 'dummy', item: {id: 'enable_id', name: 'enable', enable: 1})
+    client.put_item(table_name: 'dummy', item: {id: 'disable_id', name: 'disable', enable: 0})
 
     client.delete_table(table_name: 'post') if client.list_tables[:table_names].include?('post')
     client.create_table(
-        table_name: 'post',
-        attribute_definitions: [
-            {attribute_name: 'id', attribute_type: 'S'},
-            {attribute_name: 'timestamp', attribute_type: 'N'},
-        ],
-        key_schema: [
-            {attribute_name: 'id', key_type: 'HASH'},
-            {attribute_name: 'timestamp', key_type: 'RANGE'},
-        ],
-        provisioned_throughput: {
-            read_capacity_units: 1,
-            write_capacity_units: 1,
-        })
+      table_name: 'post',
+      attribute_definitions: [
+        {attribute_name: 'id', attribute_type: 'S'},
+        {attribute_name: 'timestamp', attribute_type: 'N'},
+      ],
+      key_schema: [
+        {attribute_name: 'id', key_type: 'HASH'},
+        {attribute_name: 'timestamp', key_type: 'RANGE'},
+      ],
+      provisioned_throughput: {
+        read_capacity_units: 1,
+        write_capacity_units: 1,
+      })
   end
 
 #  let(:model) { Dummy.new }
@@ -321,6 +321,41 @@ describe Dymos::Model do
           expect(user.enable?).to eq(false)
         end
       end
+    end
+  end
+
+  describe :callbacks do
+    class DummyArticle < Dymos::Model
+      table :dummy
+      field :id, :integer
+      field :title, :string
+      field :updated_at, :time
+
+      after_set_title do
+        self.updated_at = Time.now
+      end
+    end
+    it 'タイトルが挿入されるとタイトルを2回繰り返して更新時間が自動的に挿入される' do
+      article = DummyArticle.new
+      expect(article.title).to eq(nil)
+      expect(article.updated_at).to eq(nil)
+      article.title="hoge"*2
+      expect(article.title).to eq("hogehoge")
+      expect(article.updated_at.class).to eq(Time)
+    end
+    class DummyTable < Dymos::Model
+      table :dummy
+      before_save do
+        fail StandardError
+      end
+    end
+    it "DummyTableをsaveするとfalseを返す" do
+      d = DummyTable.new
+      result=d.save
+      expect(result).to eq(false)
+    end
+    it "DummyTableをsave!すると例外を返す" do
+      expect{DummyTable.new.save!}.to raise_error
     end
   end
 end

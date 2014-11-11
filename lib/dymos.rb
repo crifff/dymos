@@ -1,3 +1,5 @@
+require 'active_support/all'
+
 require "dymos/query/attribute"
 require "dymos/query/expect"
 require "dymos/query/builder"
@@ -12,6 +14,7 @@ require "dymos/attribute"
 require "dymos/command"
 require "dymos/persistence"
 require "dymos/model"
+require "dymos/client"
 require "dymos/version"
 
 module Dymos

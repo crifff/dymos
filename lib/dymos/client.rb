@@ -6,7 +6,7 @@ module Dymos
 
     def initialize(params={})
       config = Aws.config.merge params
-      @client = Aws::DynamoDB::Client.new(config)
+      @client ||= Aws::DynamoDB::Client.new(config)
     end
 
     def command(name, params)

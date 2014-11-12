@@ -41,14 +41,8 @@ describe Dymos::Model do
   end
 
   before :all do
-    Aws.config[:region] = 'us-west-1'
-    Aws.config[:endpoint] = 'http://localhost:4567'
-    Aws.config[:access_key_id] = 'XXX'
-    Aws.config[:secret_access_key] = 'XXX'
-    client = Aws::DynamoDB::Client.new
-
-    client.delete_table(table_name: 'dummy') if client.list_tables[:table_names].include?('dummy')
-    client.create_table(
+    @client.delete_table(table_name: 'dummy') if @client.list_tables[:table_names].include?('dummy')
+    @client.create_table(
       table_name: 'dummy',
       attribute_definitions: [
         {attribute_name: 'id', attribute_type: 'S'}
@@ -60,15 +54,15 @@ describe Dymos::Model do
         read_capacity_units: 1,
         write_capacity_units: 1,
       })
-    client.put_item(table_name: 'dummy', item: {id: 'hoge', name: '太郎', list: Set['a', 'b', 'c']})
-    client.put_item(table_name: 'dummy', item: {id: 'fuga', name: '次郎'})
-    client.put_item(table_name: 'dummy', item: {id: 'piyo', name: '三郎'})
-    client.put_item(table_name: 'dummy', item: {id: 'musashi', name: '巴'}) #削除用
-    client.put_item(table_name: 'dummy', item: {id: 'enable_id', name: 'enable', enable: 1})
-    client.put_item(table_name: 'dummy', item: {id: 'disable_id', name: 'disable', enable: 0})
+    @client.put_item(table_name: 'dummy', item: {id: 'hoge', name: '太郎', list: Set['a', 'b', 'c']})
+    @client.put_item(table_name: 'dummy', item: {id: 'fuga', name: '次郎'})
+    @client.put_item(table_name: 'dummy', item: {id: 'piyo', name: '三郎'})
+    @client.put_item(table_name: 'dummy', item: {id: 'musashi', name: '巴'}) #削除用
+    @client.put_item(table_name: 'dummy', item: {id: 'enable_id', name: 'enable', enable: 1})
+    @client.put_item(table_name: 'dummy', item: {id: 'disable_id', name: 'disable', enable: 0})
 
-    client.delete_table(table_name: 'post') if client.list_tables[:table_names].include?('post')
-    client.create_table(
+    @client.delete_table(table_name: 'post') if @client.list_tables[:table_names].include?('post')
+    @client.create_table(
       table_name: 'post',
       attribute_definitions: [
         {attribute_name: 'id', attribute_type: 'S'},

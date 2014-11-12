@@ -71,7 +71,6 @@ module Dymos
       @fields
     end
 
-
     def self.table(name)
       define_singleton_method('table_name') { name }
       define_method('table_name') { name }
@@ -96,7 +95,7 @@ module Dymos
     def self.all
       builder = Dymos::Query::Scan.new.name(table_name)
       response = Dymos::Client.new.command builder.command, builder.build
-      Dymos::Query::Builder.to_model(class_name, response)
+      to_model(class_name, response)
     end
 
     def self.find(key1, key2=nil)
@@ -108,7 +107,7 @@ module Dymos
       builder = Dymos::Query::GetItem.new.name(table_name).key(keys)
 
       response = Dymos::Client.new.command builder.command, builder.build
-      Dymos::Query::Builder.to_model(class_name, response)
+      to_model(class_name, response)
     end
 
     def self.key_scheme
@@ -129,10 +128,6 @@ module Dymos
         [scheme[:attribute_name], send(scheme[:attribute_name])]
       end
       scheme.to_h
-    end
-
-    def dynamo
-      @client ||= Aws::DynamoDB::Client.new
     end
 
     # @return [String]
@@ -165,5 +160,41 @@ module Dymos
       end
     end
 
+    def self.to_model(class_name, res)
+      if class_name.present?
+        if res.data.respond_to? :items # scan, query
+          metadata = extract(res, :items)
+          res.data[:items].map do |datum|
+            obj = Object.const_get(class_name).new(datum)
+            obj.metadata = metadata
+            obj.new_record = false
+            obj
+          end
+        elsif res.data.respond_to? :attributes # put_item, update_item
+          return nil if res.attributes.nil?
+          obj = Object.const_get(class_name).new(res.attributes)
+          obj.metadata = extract(res, :attributes)
+          obj
+        elsif res.respond_to? :data
+          if res.data.respond_to? :item # get_item, delete_item
+            return nil if res.data.item.nil?
+            obj = Object.const_get(class_name).new(res.data.item)
+            obj.metadata = extract(res, :item)
+            obj.new_record = false
+            obj
+          else
+            res.data.to_hash # describe
+          end
+        end
+      else
+        res.data.to_hash #list_tables
+      end
+
+    end
+
+    def self.extract(res, ignore_key)
+      keys = res.data.members.reject { |a| a == ignore_key }
+      keys.map { |k| [k, res.data[k]] }.to_h
+    end
   end
 end

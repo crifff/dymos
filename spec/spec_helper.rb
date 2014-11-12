@@ -10,11 +10,11 @@ I18n.enforce_available_locales = false
 
 
 RSpec.configure do |config|
-  config.before do
+  config.before :all do
     Aws.config[:region] = 'us-west-1'
     Aws.config[:endpoint] = 'http://localhost:4567'
-    Aws.config[:access_key_id] = 'XXX'
-    Aws.config[:secret_access_key] = 'XXX'
+    Aws.config[:access_key_id] = 'dymos_test'
+    Aws.config[:secret_access_key] = 'dymos_test'
     @client=Aws::DynamoDB::Client.new
 
     list_tables = @client.list_tables.table_names

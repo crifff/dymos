@@ -52,11 +52,8 @@ module Dymos
       if persisted?
         builder = Dymos::Query::DeleteItem.new
 
-        keys=self.class.key_scheme.map { |k|
-          [k[:attribute_name], self.send(k[:attribute_name])]
-        }.flatten
-        builder.name(self.table_name).key(Hash[*keys]).return_values(:all_old)
-        response = Dymos::Client.new.command builder.command, builder.build
+        builder.name(self.table_name).key(indexes).return_values(:all_old)
+        Dymos::Client.new.command builder.command, builder.build
       end
       @destroyed = true
       freeze
@@ -77,10 +74,7 @@ module Dymos
       send :updated_at=, Time.new.iso8601 if respond_to? :updated_at
       builder = Dymos::Query::UpdateItem.new
 
-      keys=self.class.key_scheme.map { |k|
-        [k[:attribute_name], self.send(k[:attribute_name])]
-      }.flatten
-      builder.name(self.table_name).key(Hash[*keys]).return_values(:all_old)
+      builder.name(self.table_name).key(indexes).return_values(:all_old)
 
       self.changes.each do |column, change|
         builder.put(column, change[1])

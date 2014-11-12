@@ -2,9 +2,6 @@ require 'active_support/all'
 
 require "dymos/config"
 require "dymos/query/base"
-require "dymos/query/attribute"
-require "dymos/query/expect"
-require "dymos/query/builder"
 require "dymos/query/put_item"
 require "dymos/query/update_item"
 require "dymos/query/delete_item"

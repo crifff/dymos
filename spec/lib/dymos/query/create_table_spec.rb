@@ -1,22 +1,13 @@
 describe Dymos::Query::CreateTable do
 
-  before do
-    Aws.config[:region] = 'us-west-1'
-    Aws.config[:endpoint] = 'http://localhost:4567'
-    Aws.config[:access_key_id] = 'XXX'
-    Aws.config[:secret_access_key] = 'XXX'
-  end
-
-
-  let(:client){Aws::DynamoDB::Client.new}
   describe 'build query' do
     let(:builder) { Dymos::Query::CreateTable.new }
 
     it 'create文生成(スループットデフォルト値)' do
       builder.name('test_create_table').attributes(id: 'S').keys(id: 'HASH')
       expect(builder.build).to eq({:table_name => "test_create_table", :attribute_definitions => [{:attribute_name => "id", :attribute_type => "S"}], :key_schema => [{:attribute_name => "id", :key_type => "HASH"}], :provisioned_throughput => {:read_capacity_units => 10, :write_capacity_units => 5}})
-      client.delete_table(table_name: 'test_create_table') if client.list_tables[:table_names].include?('test_create_table')
-      client.create_table(builder.build)
+      @client.delete_table(table_name: 'test_create_table') if @client.list_tables[:table_names].include?('test_create_table')
+      @client.create_table(builder.build)
     end
 
     it '複雑なクエリ(インデックスのprojection省略するとALLになる)' do
@@ -56,8 +47,8 @@ describe Dymos::Query::CreateTable do
                                                                           :key_type => "RANGE"}],
                                                          :projection => {:projection_type => "ALL"}}]})
 
-      client.delete_table(table_name: 'test_create_table') if client.list_tables[:table_names].include?('test_create_table')
-      client.create_table(query)
+      @client.delete_table(table_name: 'test_create_table') if @client.list_tables[:table_names].include?('test_create_table')
+      @client.create_table(query)
     end
   end
 

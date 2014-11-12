@@ -26,22 +26,28 @@ module Dymos
       end
 
       def filter(value, operator='AND')
-        value.map { |v| add_filter(v) }
-        @query[:conditional_operator] = operator.to_s.upcase
+        value.map { |v| add_filter(*v) }
+        filter_operator operator.to_s.upcase if value.count > 1
         self
       end
 
-      def add_filter(value)
+      def add_filter(*value)
+        if value.count == 2
+          column, operator, value = value[0], :eq, value[1]
+        else
+          column, operator, value = value
+        end
         @query[:scan_filter] ||= {}
-        @query[:scan_filter].store(*_add_filter(value))
+        @query[:scan_filter].store(*_add_filter(column, operator, value))
+        filter_operator 'AND' if @query[:conditional_operator].blank? && @query[:scan_filter].count > 1
         self
       end
 
-      def _add_filter(value)
-        [value[0].to_s, {
-                        attribute_value_list: [*value[2]],
-                        comparison_operator: value[1].to_s.upcase
-                      }
+      def _add_filter(column, operator, value)
+        [column.to_s, {
+                      attribute_value_list: [*value],
+                      comparison_operator: operator.to_s.upcase
+                    }
         ]
       end
 
@@ -50,10 +56,11 @@ module Dymos
         self
       end
 
-      def start_key(value)
+      def exclusive_start_key(value)
         @query[:exclusive_start_key] = value.deep_stringify_keys
         self
       end
+      alias :start_key :exclusive_start_key
 
       def return_consumed_capacity(value)
         @query[:return_consumed_capacity] = value.to_s.upcase

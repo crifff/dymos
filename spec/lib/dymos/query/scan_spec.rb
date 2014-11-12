@@ -1,14 +1,5 @@
 describe Dymos::Query::Scan do
 
-  before do
-    Aws.config[:region] = 'us-west-1'
-    Aws.config[:endpoint] = 'http://localhost:4567'
-    Aws.config[:access_key_id] = 'XXX'
-    Aws.config[:secret_access_key] = 'XXX'
-  end
-
-  let(:client) { Aws::DynamoDB::Client.new }
-
   describe 'build query' do
     let(:builder) { Dymos::Query::Scan.new }
 
@@ -39,7 +30,7 @@ describe Dymos::Query::Scan do
     end
 
     it :add_filter, :filter_operator do
-      builder.add_filter([:item1, :eq, [1, 2, 3]]).add_filter([:item2, :begins_with, 'fuga']).filter_operator(:or)
+      builder.add_filter(:item1, [1, 2, 3]).add_filter(:item2, :begins_with, 'fuga').filter_operator(:or)
       expect(builder.build).to eq({scan_filter: {
                                     'item1' => {
                                       attribute_value_list: [1, 2, 3],
@@ -56,6 +47,13 @@ describe Dymos::Query::Scan do
     it :start_key do
       builder.start_key(id: 1, hoge: 'fuga')
       expect(builder.build).to eq({exclusive_start_key: {"id" => 1, "hoge" => "fuga"}})
+    end
+
+    it '絞込' do
+      builder.name(:ProductCatalog).add_filter(:Authors, :contains, "Author 1")
+      result = @client.scan(builder.build)
+      expect(result[:scanned_count]).to eq(8)
+      expect(result[:count]).to eq(3)
     end
 
   end

@@ -8,7 +8,7 @@ module Dymos
     include ActiveModel::Callbacks
     include Dymos::Persistence
     extend Dymos::Command
-    attr_accessor :metadata
+    attr_accessor :metadata, :last_execute_query
 
     define_model_callbacks :save
 
@@ -16,6 +16,36 @@ module Dymos
       @attributes={}
       send :attributes=, params, true
       super
+    end
+
+    class << self
+      attr_accessor :last_execute_query
+
+      def method_missing(name, *args, &block)
+        methods ||= Dymos::Query::Query.instance_methods(false)+
+          Dymos::Query::GetItem.instance_methods(false)+
+          Dymos::Query::Scan.instance_methods(false)
+        if methods.include? name
+          @query||={}
+          @query[name]=args
+          self
+        else
+          super
+        end
+      end
+    end
+
+    def method_missing(name, *args, &block)
+      methods ||= Dymos::Query::UpdateItem.instance_methods(false)+
+        Dymos::Query::PutItem.instance_methods(false)+
+        Dymos::Query::DeleteItem.instance_methods(false)
+      if methods.include? name
+        @query||={}
+        @query[name]=args
+        self
+      else
+        super
+      end
     end
 
     def self.field(attr, type, default: nil, desc: nil)
@@ -93,9 +123,21 @@ module Dymos
     end
 
     def self.all
-      builder = Dymos::Query::Scan.new.name(table_name)
-      response = Dymos::Client.new.command builder.command, builder.build
-      to_model(class_name, response)
+      if @query.present? && @query.keys & [:conditions, :add_condition, :where]
+        builder = Dymos::Query::Query.new.name(table_name)
+        @query.each do |k, v|
+          builder.send k, *v
+        end
+        @query={}
+      else
+        builder = Dymos::Query::Scan.new.name(table_name)
+      end
+      _execute(builder)
+    end
+
+    def self.one
+      @query[:limit] = 1
+      self.all.first
     end
 
     def self.find(key1, key2=nil)
@@ -105,8 +147,12 @@ module Dymos
       keys[indexes.last[:attribute_name].to_sym] = key2 if indexes.size > 1
 
       builder = Dymos::Query::GetItem.new.name(table_name).key(keys)
-
-      response = Dymos::Client.new.command builder.command, builder.build
+      _execute(builder)
+    end
+    def self._execute(builder)
+      query = builder.build
+      @last_execute_query = {command: builder.command, query: query}
+      response = Dymos::Client.new.command builder.command, query
       to_model(class_name, response)
     end
 

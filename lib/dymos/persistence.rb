@@ -53,7 +53,15 @@ module Dymos
         builder = Dymos::Query::DeleteItem.new
 
         builder.name(self.table_name).key(indexes).return_values(:all_old)
-        Dymos::Client.new.command builder.command, builder.build
+
+        @query.each do |k, v|
+          builder.send k, *v
+        end if @query.present?
+        @query={}
+
+        query = builder.build
+        @last_execute_query = {command: builder.command, query: query}
+        Dymos::Client.new.command builder.command, query
       end
       @destroyed = true
       freeze
@@ -67,6 +75,11 @@ module Dymos
       builder = Dymos::Query::PutItem.new
       builder.name(self.table_name).item(attributes).return_values(:all_old)
 
+      @query.each do |k, v|
+        builder.send k, *v
+      end if @query.present?
+      @query={}
+
       _execute(builder)
     end
 
@@ -79,6 +92,12 @@ module Dymos
       self.changes.each do |column, change|
         builder.put(column, change[1])
       end
+
+      @query.each do |k, v|
+        builder.send k, *v
+      end if @query.present?
+      @query={}
+
       _execute(builder)
     end
 
@@ -95,7 +114,9 @@ module Dymos
     # end
 
     def _execute(builder)
-      response = Dymos::Client.new.command builder.command, builder.build
+      query = builder.build
+      @last_execute_query = {command: builder.command, query: query}
+      response = Dymos::Client.new.command builder.command, query
       fail raise(Dymos::RecordNotSaved) if response.nil?
       changes_applied
       @new_record = false

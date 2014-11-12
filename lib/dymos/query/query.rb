@@ -7,7 +7,7 @@ module Dymos
       end
 
       def index(value)
-        @query[:index_name] = value
+        @query[:index_name] = value.to_s
         self
       end
 

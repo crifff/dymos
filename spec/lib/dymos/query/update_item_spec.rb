@@ -7,9 +7,9 @@ describe Dymos::Query::UpdateItem do
 
   describe 'build query', order: :defined do
     let(:builder) { Dymos::Query::UpdateItem.new }
-    let(:table) { 'test_update_item_table' }
+    table='test_update_item_table'
 
-    it do
+    before :all do
       @client.delete_table(table_name: table) if @client.list_tables[:table_names].include?(table)
       query=Dymos::Query::CreateTable.new.name(table).attributes(id: 'S').keys(id: 'HASH').build
       @client.create_table(query)

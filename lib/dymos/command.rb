@@ -1,36 +1,31 @@
 module Dymos
   module Command
+    class << self
+      def find(key1, key2=nil)
+        builder=Dymos::Query::GetItem.new.name(table_name)
+        p keys
+        #builder.key
+      end
 
-    # @return [PutItem]
-    def put
-      Dymos::Query::PutItem.new(:put_item, table_name, class_name)
+      def all
+        builder=Dymos::Query::Query.new.name(table_name)
+      end
+
+      def describe
+        builder=Dymos::Query::Describe.new.name(table_name)
+      end
     end
 
-    # @return [UpdateItem]
+    def save
+      builder=Dymos::Query::PutItem.new.name(table_name)
+    end
+
     def update
-      Dymos::Query::UpdateItem.new(:update_item, table_name, class_name)
-    end
-
-    # @return [GetItem]
-    def get
-      Dymos::Query::GetItem.new(:get_item, table_name, class_name)
-    end
-
-    # @return [Query]
-    def query
-      Dymos::Query::Query.new(:query, table_name, class_name)
-    end
-
-    def describe
-      Dymos::Query::Describe.new(:describe_table, table_name, class_name)
-    end
-
-    def scan
-      Dymos::Query::Scan.new(:scan, table_name, class_name)
+      builder=Dymos::Query::UpdateItem.new.name(table_name)
     end
 
     def delete
-      Dymos::Query::DeleteItem.new(:delete_item, table_name, class_name)
+      builder=Dymos::Query::DeleteItem.new.name(table_name)
     end
   end
 end

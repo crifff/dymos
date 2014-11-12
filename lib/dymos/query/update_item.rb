@@ -1,6 +1,10 @@
 module Dymos
   module Query
     class UpdateItem
+      def command
+        'update_item'
+      end
+
       def initialize
         @query={}
       end

@@ -4,7 +4,7 @@ module Dymos
       attr_accessor :table_name, :command, :query
 
       def initialize(command, table_name=nil, class_name=nil)
-        @class_name = class_name
+        class_name = class_name
         @command = command
         @table_name = table_name if table_name.present?
         self
@@ -34,29 +34,25 @@ module Dymos
         res
       end
 
-      def execute(client = nil)
-        res = raw_execute client
-
-        return false unless res
-
-        if @class_name.present?
+      def self.to_model(class_name, res)
+        if class_name.present?
           if res.data.respond_to? :items # scan, query
             metadata = extract(res, :items)
             res.data[:items].map do |datum|
-              obj = Object.const_get(@class_name).new(datum)
+              obj = Object.const_get(class_name).new(datum)
               obj.metadata = metadata
               obj.new_record = false
               obj
             end
           elsif res.data.respond_to? :attributes # put_item, update_item
             return nil if res.attributes.nil?
-            obj = Object.const_get(@class_name).new(res.attributes)
+            obj = Object.const_get(class_name).new(res.attributes)
             obj.metadata = extract(res, :attributes)
             obj
           elsif res.respond_to? :data
             if res.data.respond_to? :item # get_item, delete_item
               return nil if res.data.item.nil?
-              obj = Object.const_get(@class_name).new(res.data.item)
+              obj = Object.const_get(class_name).new(res.data.item)
               obj.metadata = extract(res, :item)
               obj.new_record = false
               obj
@@ -70,7 +66,7 @@ module Dymos
 
       end
 
-      def extract(res, ignore_key)
+      def self.extract(res, ignore_key)
         keys = res.data.members.reject { |a| a == ignore_key }
         keys.map { |k| [k, res.data[k]] }.to_h
       end

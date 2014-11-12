@@ -32,18 +32,18 @@ module Dymos
       define_model_callbacks attr
       define_method(attr) { |raw=false|
         run_callbacks attr do
-        val = read_attribute(attr) || default
-        return val if raw || !val.present?
-        case type
-          when :bool
-            to_b(val)
-          when :time
-            Time.parse val
-          when :integer
-            val.to_i
-          else
-            val
-        end
+          val = read_attribute(attr) || default
+          return val if raw || !val.present?
+          case type
+            when :bool
+              to_b(val)
+            when :time
+              Time.parse val
+            when :integer
+              val.to_i
+            else
+              val
+          end
         end
 
       }
@@ -61,8 +61,8 @@ module Dymos
       define_model_callbacks :"set_#{attr}"
       define_method("#{attr}=") do |value, initialize=false|
         run_callbacks :"set_#{attr}" do
-        value = value.iso8601 if self.class.fields.include?(attr) && value.is_a?(Time)
-        write_attribute(attr, value, initialize)
+          value = value.iso8601 if self.class.fields.include?(attr) && value.is_a?(Time)
+          write_attribute(attr, value, initialize)
         end
       end
     end
@@ -94,7 +94,9 @@ module Dymos
     end
 
     def self.all
-      self.scan.execute
+      builder = Dymos::Query::Scan.new.name(table_name)
+      response = Dymos::Client.new.command builder.command, builder.build
+      Dymos::Query::Builder.to_model(class_name, response)
     end
 
     def self.find(key1, key2=nil)
@@ -102,19 +104,24 @@ module Dymos
       keys={}
       keys[indexes.first[:attribute_name].to_sym] = key1
       keys[indexes.last[:attribute_name].to_sym] = key2 if indexes.size > 1
-      self.get.key(keys).execute
+
+      builder = Dymos::Query::GetItem.new.name(table_name).key(keys)
+
+      response = Dymos::Client.new.command builder.command, builder.build
+      Dymos::Query::Builder.to_model(class_name, response)
     end
 
     def self.key_scheme
-      @key_scheme ||= new.describe_table[:table][:key_schema]
+      @key_scheme ||= describe[:table][:key_schema]
     end
 
     def reload!
       reset_changes
     end
 
-    def describe_table
-      self.class.send(:describe).execute
+    def self.describe
+      builder=Dymos::Query::Describe.new.name(table_name)
+      Dymos::Client.new.command :describe_table, builder.build
     end
 
     def indexes

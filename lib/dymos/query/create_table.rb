@@ -1,6 +1,10 @@
 module Dymos
   module Query
     class CreateTable
+      def command
+        'create_table'
+      end
+
       def initialize
         @query={}
       end

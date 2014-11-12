@@ -1,6 +1,10 @@
 module Dymos
   module Query
     class DeleteItem
+      def command
+        'delete_item'
+      end
+
       def initialize
         @query={}
       end

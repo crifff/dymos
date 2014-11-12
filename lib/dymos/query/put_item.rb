@@ -1,6 +1,10 @@
 module Dymos
   module Query
     class PutItem
+      def command
+        'put_item'
+      end
+
       def initialize
         @query={}
       end
@@ -33,7 +37,7 @@ module Dymos
 
       def _add_expected(column, operator, value)
         [column.to_s, {
-                      attribute_value_list: ([:BETWEEN,:IN].include? operator) ? [*value]:[value],
+                      attribute_value_list: ([:BETWEEN, :IN].include? operator) ? [*value] : [value],
                       comparison_operator: operator.to_s.upcase
                     }
         ]

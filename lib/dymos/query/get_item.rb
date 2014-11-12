@@ -1,6 +1,10 @@
 module Dymos
   module Query
     class GetItem
+      def command
+        'get_item'
+      end
+
       def initialize
         @query={}
       end

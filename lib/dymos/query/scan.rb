@@ -1,6 +1,10 @@
 module Dymos
   module Query
     class Scan
+      def command
+        'scan'
+      end
+
       def initialize
         @query={}
       end

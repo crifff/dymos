@@ -1,6 +1,10 @@
 module Dymos
   module Query
     class Describe
+      def command
+        'describe_table'
+      end
+
       def initialize
         @query={}
       end

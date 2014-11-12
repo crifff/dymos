@@ -1,6 +1,11 @@
 module Dymos
   module Query
     class Query
+
+      def command
+        'query'
+      end
+
       def initialize
         @query={}
       end

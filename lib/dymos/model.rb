@@ -7,7 +7,6 @@ module Dymos
     include ActiveModel::Dirty
     include ActiveModel::Callbacks
     include Dymos::Persistence
-    extend Dymos::Command
     attr_accessor :metadata, :last_execute_query
 
     define_model_callbacks :save

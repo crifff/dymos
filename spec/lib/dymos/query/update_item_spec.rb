@@ -1,4 +1,9 @@
 describe Dymos::Query::UpdateItem do
+  before do
+    Dymos::Config.default[:update_item]={
+      return_values: 'ALL_NEW'
+    }
+  end
 
   describe 'build query', order: :defined do
     let(:builder) { Dymos::Query::UpdateItem.new }
@@ -20,14 +25,14 @@ describe Dymos::Query::UpdateItem do
       expect(result.attributes["param2"]).to eq(1201)
     end
     it 'put, add' do
-      builder.name(table).key(id: 'hoge').add(:param1, 1).put(:param2, 1202).return_values(:all_new)
+      builder.name(table).key(id: 'hoge').add(:param1, 1).put(:param2, 1202)
       result = @client.update_item(builder.build)
       expect(result.error).to eq(nil)
       expect(result.attributes["param1"]).to eq(1102)
       expect(result.attributes["param2"]).to eq(1202)
     end
     it 'expected' do
-      builder.name(table).key(id: 'hoge').add(:param1, 1).put(:param2, 1203).expected(param3: "hoge", param4: [1, 0, 1]).return_values(:all_new)
+      builder.name(table).key(id: 'hoge').add(:param1, 1).put(:param2, 1203).expected(param3: "hoge", param4: [1, 0, 1])
       result = @client.update_item(builder.build)
       expect(result.error).to eq(nil)
       expect(result.attributes["param1"]).to eq(1103)

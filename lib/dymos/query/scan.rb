@@ -1,17 +1,8 @@
 module Dymos
   module Query
-    class Scan
+    class Scan < Base
       def command
         'scan'
-      end
-
-      def initialize
-        @query={}
-      end
-
-      def name(value)
-        @query[:table_name] = value
-        self
       end
 
       def attributes(*value)
@@ -64,6 +55,7 @@ module Dymos
         @query[:exclusive_start_key] = value.deep_stringify_keys
         self
       end
+
       alias :start_key :exclusive_start_key
 
       def return_consumed_capacity(value)
@@ -99,10 +91,6 @@ module Dymos
       def expression_attribute_values(value)
         @query[:expression_attribute_values] = value.deep_stringify_keys
         self
-      end
-
-      def build(value={})
-        @query.merge value
       end
 
     end

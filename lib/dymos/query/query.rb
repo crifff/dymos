@@ -1,18 +1,9 @@
 module Dymos
   module Query
-    class Query
+    class Query < Base
 
       def command
         'query'
-      end
-
-      def initialize
-        @query={}
-      end
-
-      def name(value)
-        @query[:table_name] = value
-        self
       end
 
       def index(value)
@@ -130,10 +121,6 @@ module Dymos
       def expression_attribute_names(value)
         @query[:expression_attribute_names] = value.deep_stringify_keys
         self
-      end
-
-      def build(value={})
-        @query.merge value
       end
     end
   end

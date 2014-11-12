@@ -1,17 +1,9 @@
 module Dymos
   module Query
-    class GetItem
+    class GetItem < Base
+
       def command
         'get_item'
-      end
-
-      def initialize
-        @query={}
-      end
-
-      def name(value)
-        @query[:table_name] = value
-        self
       end
 
       def key(value)
@@ -42,10 +34,6 @@ module Dymos
       def expression_attribute_names(value)
         @query[:expression_attribute_names] = value.deep_stringify_keys
         self
-      end
-
-      def build(value={})
-         @query.merge value
       end
     end
   end

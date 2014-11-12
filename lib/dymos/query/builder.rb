@@ -1,39 +1,6 @@
 module Dymos
   module Query
     class Builder
-      attr_accessor :table_name, :command, :query
-
-      def initialize(command, table_name=nil, class_name=nil)
-        class_name = class_name
-        @command = command
-        @table_name = table_name if table_name.present?
-        self
-      end
-
-      def query
-
-      end
-
-      def before_send_query(command, query)
-
-      end
-
-      def after_send_query(command, query)
-
-      end
-
-      def raw_execute(client=nil)
-        client ||= Aws::DynamoDB::Client.new
-        begin
-          before_send_query command, query
-          res = client.send command, query
-          after_send_query command, query
-        rescue Aws::DynamoDB::Errors::ConditionalCheckFailedException
-          return false
-        end
-        res
-      end
-
       def self.to_model(class_name, res)
         if class_name.present?
           if res.data.respond_to? :items # scan, query

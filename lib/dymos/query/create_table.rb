@@ -1,17 +1,8 @@
 module Dymos
   module Query
-    class CreateTable
+    class CreateTable < Base
       def command
         'create_table'
-      end
-
-      def initialize
-        @query={}
-      end
-
-      def name(value)
-        @query[:table_name] = value
-        self
       end
 
       def attributes(value)
@@ -76,12 +67,6 @@ module Dymos
       private def _projection_type(i)
         {projection_type: (i.try(:[], :projection).try(:[], :type) || 'ALL').to_s}
       end
-
-      def build(value={})
-        @query[:provisioned_throughput] = _throughput(read:10,write:5) if @query[:provisioned_throughput].blank?
-        @query.merge value
-      end
-
     end
   end
 end

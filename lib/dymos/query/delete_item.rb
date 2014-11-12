@@ -1,17 +1,8 @@
 module Dymos
   module Query
-    class DeleteItem
+    class DeleteItem < Base
       def command
         'delete_item'
-      end
-
-      def initialize
-        @query={}
-      end
-
-      def name(value)
-        @query[:table_name] = value
-        self
       end
 
       def key(value)
@@ -79,9 +70,6 @@ module Dymos
         self
       end
 
-      def build(value={})
-        @query.merge value
-      end
     end
   end
 end

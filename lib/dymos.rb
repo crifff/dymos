@@ -1,5 +1,7 @@
 require 'active_support/all'
 
+require "dymos/config"
+require "dymos/query/base"
 require "dymos/query/attribute"
 require "dymos/query/expect"
 require "dymos/query/builder"

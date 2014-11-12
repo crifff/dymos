@@ -1,17 +1,8 @@
 module Dymos
   module Query
-    class PutItem
+    class PutItem < Base
       def command
         'put_item'
-      end
-
-      def initialize
-        @query={}
-      end
-
-      def name(value)
-        @query[:table_name] = value
-        self
       end
 
       def item(value)
@@ -78,10 +69,6 @@ module Dymos
         self
       end
 
-      def build(value={})
-        @query.merge value
-      end
     end
-
   end
 end

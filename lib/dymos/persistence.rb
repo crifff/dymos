@@ -29,7 +29,7 @@ module Dymos
 
     def save!(*)
       run_callbacks :save do
-        _put || raise(Dymos::RecordNotSaved)
+        _put || raise(::Dymos::RecordNotSaved)
       end
     end
 
@@ -43,14 +43,14 @@ module Dymos
 
     def update!(*)
       run_callbacks :save do
-        _update || raise(Dymos::RecordNotSaved)
+        _update || raise(::Dymos::RecordNotSaved)
       end
     end
 
     def delete
 
       if persisted?
-        builder = Dymos::Query::DeleteItem.new
+        builder = ::Dymos::Query::DeleteItem.new
 
         builder.name(self.table_name).key(indexes).return_values(:all_old)
 
@@ -61,7 +61,7 @@ module Dymos
 
         query = builder.build
         @last_execute_query = {command: builder.command, query: query}
-        Dymos::Client.new.command builder.command, query
+        ::Dymos::Client.new.command builder.command, query
       end
       @destroyed = true
       freeze
@@ -72,7 +72,7 @@ module Dymos
     def _put
       send :created_at=, Time.new.iso8601 if respond_to? :created_at if @new_record
       send :updated_at=, Time.new.iso8601 if respond_to? :updated_at
-      builder = Dymos::Query::PutItem.new
+      builder = ::Dymos::Query::PutItem.new
       builder.name(self.table_name).item(attributes).return_values(:all_old)
 
       @query.each do |k, v|
@@ -85,7 +85,7 @@ module Dymos
 
     def _update
       send :updated_at=, Time.new.iso8601 if respond_to? :updated_at
-      builder = Dymos::Query::UpdateItem.new
+      builder = ::Dymos::Query::UpdateItem.new
 
       builder.name(self.table_name).key(indexes).return_values(:all_old)
 
@@ -116,8 +116,8 @@ module Dymos
     def _execute(builder)
       query = builder.build
       @last_execute_query = {command: builder.command, query: query}
-      response = Dymos::Client.new.command builder.command, query
-      fail raise(Dymos::RecordNotSaved) if response.nil?
+      response = ::Dymos::Client.new.command builder.command, query
+      fail raise(::Dymos::RecordNotSaved) if response.nil?
       changes_applied
       @new_record = false
       response.present?

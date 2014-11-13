@@ -6,7 +6,7 @@ module Dymos
     include ActiveModel::Model
     include ActiveModel::Dirty
     include ActiveModel::Callbacks
-    include Dymos::Persistence
+    include ::Dymos::Persistence
     attr_accessor :metadata, :last_execute_query
 
     define_model_callbacks :save
@@ -21,9 +21,9 @@ module Dymos
       attr_accessor :last_execute_query
 
       def method_missing(name, *args, &block)
-        methods ||= Dymos::Query::Query.instance_methods(false)+
-          Dymos::Query::GetItem.instance_methods(false)+
-          Dymos::Query::Scan.instance_methods(false)
+        methods ||= ::Dymos::Query::Query.instance_methods(false)+
+          ::Dymos::Query::GetItem.instance_methods(false)+
+          ::Dymos::Query::Scan.instance_methods(false)
         if methods.include? name
           @query||={}
           @query[name]=args
@@ -35,9 +35,9 @@ module Dymos
     end
 
     def method_missing(name, *args, &block)
-      methods ||= Dymos::Query::UpdateItem.instance_methods(false)+
-        Dymos::Query::PutItem.instance_methods(false)+
-        Dymos::Query::DeleteItem.instance_methods(false)
+      methods ||= ::Dymos::Query::UpdateItem.instance_methods(false)+
+        ::Dymos::Query::PutItem.instance_methods(false)+
+        ::Dymos::Query::DeleteItem.instance_methods(false)
       if methods.include? name
         @query||={}
         @query[name]=args
@@ -123,13 +123,13 @@ module Dymos
 
     def self.all
       if @query.present? && @query.keys & [:conditions, :add_condition, :where]
-        builder = Dymos::Query::Query.new.name(table_name)
+        builder = ::Dymos::Query::Query.new.name(table_name)
         @query.each do |k, v|
           builder.send k, *v
         end
         @query={}
       else
-        builder = Dymos::Query::Scan.new.name(table_name)
+        builder = ::Dymos::Query::Scan.new.name(table_name)
       end
       _execute(builder)
     end
@@ -145,13 +145,13 @@ module Dymos
       keys[indexes.first[:attribute_name].to_sym] = key1
       keys[indexes.last[:attribute_name].to_sym] = key2 if indexes.size > 1
 
-      builder = Dymos::Query::GetItem.new.name(table_name).key(keys)
+      builder = ::Dymos::Query::GetItem.new.name(table_name).key(keys)
       _execute(builder)
     end
     def self._execute(builder)
       query = builder.build
       @last_execute_query = {command: builder.command, query: query}
-      response = Dymos::Client.new.command builder.command, query
+      response = ::Dymos::Client.new.command builder.command, query
       to_model(class_name, response)
     end
 
@@ -164,8 +164,8 @@ module Dymos
     end
 
     def self.describe
-      builder=Dymos::Query::Describe.new.name(table_name)
-      Dymos::Client.new.command :describe_table, builder.build
+      builder=::Dymos::Query::Describe.new.name(table_name)
+      ::Dymos::Client.new.command :describe_table, builder.build
     end
 
     def indexes

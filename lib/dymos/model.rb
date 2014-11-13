@@ -122,15 +122,15 @@ module Dymos
     end
 
     def self.all
-      if @query.present? && @query.keys & [:conditions, :add_condition, :where]
+      if @query.present? && (@query.keys & [:conditions, :add_condition, :where]).present?
         builder = ::Dymos::Query::Query.new.name(table_name)
-        @query.each do |k, v|
-          builder.send k, *v
-        end
-        @query={}
       else
         builder = ::Dymos::Query::Scan.new.name(table_name)
       end
+      @query.each do |k, v|
+        builder.send k, *v
+      end if @query.present?
+      @query={}
       _execute(builder)
     end
 
@@ -150,8 +150,8 @@ module Dymos
     end
     def self._execute(builder)
       query = builder.build
-      @last_execute_query = {command: builder.command, query: query}
       response = ::Dymos::Client.new.command builder.command, query
+      @last_execute_query = {command: builder.command, query: query}
       to_model(class_name, response)
     end
 

@@ -246,6 +246,10 @@ describe Dymos::Model do
         users = DummyUser.all
         expect(users.size).to eq(7)
       end
+      it :limit do
+        users = DummyUser.limit(2).all
+        expect(users.size).to eq(2)
+      end
     end
 
     describe :find do

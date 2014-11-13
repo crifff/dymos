@@ -21,7 +21,7 @@ module Dymos
 
     def save(*)
       run_callbacks :save do
-        create_or_update
+        _put
       end
     rescue => e
       false
@@ -29,39 +29,98 @@ module Dymos
 
     def save!(*)
       run_callbacks :save do
-        create_or_update || raise(Dymos::RecordNotSaved)
+        _put || raise(Dymos::RecordNotSaved)
+      end
+    end
+
+    def update(*)
+      run_callbacks :save do
+        _update
+      end
+    rescue => e
+      false
+    end
+
+    def update!(*)
+      run_callbacks :save do
+        _update || raise(Dymos::RecordNotSaved)
       end
     end
 
     def delete
-      self.class.delete.key(indexes).execute if persisted?
+
+      if persisted?
+        builder = Dymos::Query::DeleteItem.new
+
+        builder.name(self.table_name).key(indexes).return_values(:all_old)
+
+        @query.each do |k, v|
+          builder.send k, *v
+        end if @query.present?
+        @query={}
+
+        query = builder.build
+        @last_execute_query = {command: builder.command, query: query}
+        Dymos::Client.new.command builder.command, query
+      end
       @destroyed = true
       freeze
     end
 
     private
 
-    def create_or_update
-      result = new_record? ? _create_record : _update_record
-      result != false
-    end
-
-    def _update_record()
+    def _put
+      send :created_at=, Time.new.iso8601 if respond_to? :created_at if @new_record
       send :updated_at=, Time.new.iso8601 if respond_to? :updated_at
-      _execute
+      builder = Dymos::Query::PutItem.new
+      builder.name(self.table_name).item(attributes).return_values(:all_old)
+
+      @query.each do |k, v|
+        builder.send k, *v
+      end if @query.present?
+      @query={}
+
+      _execute(builder)
     end
 
-    def _create_record()
-      send :created_at=, Time.new.iso8601 if respond_to? :created_at
+    def _update
       send :updated_at=, Time.new.iso8601 if respond_to? :updated_at
-      _execute
+      builder = Dymos::Query::UpdateItem.new
+
+      builder.name(self.table_name).key(indexes).return_values(:all_old)
+
+      self.changes.each do |column, change|
+        builder.put(column, change[1])
+      end
+
+      @query.each do |k, v|
+        builder.send k, *v
+      end if @query.present?
+      @query={}
+
+      _execute(builder)
     end
 
-    def _execute()
-      result = self.class.put.item(attributes).execute
+    #
+    # def _update_record()
+    #   send :updated_at=, Time.new.iso8601 if respond_to? :updated_at
+    #   _execute
+    # end
+    #
+    # def _create_record()
+    #   send :created_at=, Time.new.iso8601 if respond_to? :created_at
+    #   send :updated_at=, Time.new.iso8601 if respond_to? :updated_at
+    #   _execute
+    # end
+
+    def _execute(builder)
+      query = builder.build
+      @last_execute_query = {command: builder.command, query: query}
+      response = Dymos::Client.new.command builder.command, query
+      fail raise(Dymos::RecordNotSaved) if response.nil?
       changes_applied
       @new_record = false
-      result
+      response.present?
     end
 
   end

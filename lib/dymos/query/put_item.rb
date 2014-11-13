@@ -1,48 +1,74 @@
 module Dymos
   module Query
-    class PutItem < ::Dymos::Query::Builder
+    class PutItem < Base
+      def command
+        'put_item'
+      end
 
-      def item(params)
-        @item = params
+      def item(value)
+        @query[:item] = value.deep_stringify_keys
         self
       end
 
-      def expected(params)
-        @expected = Hash[params.map do |name, expression|
-          operator, values = expression.split(' ', 2)
-          if values.nil?
-            value1 = operator
-            [name, ::Dymos::Query::Expect.new.condition(operator, nil).data]
-          else
-            value1, value2 = values.split(' ')
-            if value2.present?
-              [name, ::Dymos::Query::Expect.new.condition(operator, values).data]
-            else
-              [name, ::Dymos::Query::Expect.new.condition(operator, value1).data]
-            end
-          end
-
-        end]
+      def expected(value)
+        value.map { |v| add_expected(*v) }
         self
       end
 
-      def query
-        data = {
-            table_name: @table_name.to_s,
-            item: @item,
-            return_values: @return_values || 'ALL_OLD',
-            # return_consumed_capacity: @return_consumed_capacity || 'TOTAL',
-            # return_item_collection_metrics: @return_item_collection_metrics || 'SIZE',
-        }
-
-        if @expected.present?
-          data[:expected] = @expected
-          if @expected.size > 1
-            data[:conditional_operator] = @conditional_operator || 'AND'
-          end
+      def add_expected(*value)
+        if value.count == 2
+          column, operator, value = value[0], :eq, value[1]
+        else
+          column, operator, value = value
         end
-        data
+        @query[:expected] ||= {}
+        @query[:expected].store(*_add_expected(column, operator, value))
+        self
       end
+
+      def _add_expected(column, operator, value)
+        [column.to_s, {
+                      attribute_value_list: ([:BETWEEN, :IN].include? operator) ? [*value] : [value],
+                      comparison_operator: operator.to_s.upcase
+                    }
+        ]
+      end
+
+      def return_values(value)
+        @query[:return_values] = value.to_s.upcase
+        self
+      end
+
+      def return_consumed_capacity(value)
+        @query[:return_consumed_capacity] = value.to_s.upcase
+        self
+      end
+
+      def return_item_collection_metrics(value)
+        @query[:return_item_collection_metrics] = value.to_s.upcase
+        self
+      end
+
+      def conditional_operator(value)
+        @query[:conditional_operator] = value.to_s.upcase
+        self
+      end
+
+      def condition_expression(value)
+        @query[:condition_expression] = value
+        self
+      end
+
+      def expression_attribute_names(value)
+        @query[:expression_attribute_names] = value.deep_stringify_keys
+        self
+      end
+
+      def expression_attribute_values(value)
+        @query[:expression_attribute_values] = value.deep_stringify_keys
+        self
+      end
+
     end
   end
 end

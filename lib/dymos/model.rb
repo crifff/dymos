@@ -7,8 +7,7 @@ module Dymos
     include ActiveModel::Dirty
     include ActiveModel::Callbacks
     include Dymos::Persistence
-    extend Dymos::Command
-    attr_accessor :metadata
+    attr_accessor :metadata, :last_execute_query
 
     define_model_callbacks :save
 
@@ -16,6 +15,36 @@ module Dymos
       @attributes={}
       send :attributes=, params, true
       super
+    end
+
+    class << self
+      attr_accessor :last_execute_query
+
+      def method_missing(name, *args, &block)
+        methods ||= Dymos::Query::Query.instance_methods(false)+
+          Dymos::Query::GetItem.instance_methods(false)+
+          Dymos::Query::Scan.instance_methods(false)
+        if methods.include? name
+          @query||={}
+          @query[name]=args
+          self
+        else
+          super
+        end
+      end
+    end
+
+    def method_missing(name, *args, &block)
+      methods ||= Dymos::Query::UpdateItem.instance_methods(false)+
+        Dymos::Query::PutItem.instance_methods(false)+
+        Dymos::Query::DeleteItem.instance_methods(false)
+      if methods.include? name
+        @query||={}
+        @query[name]=args
+        self
+      else
+        super
+      end
     end
 
     def self.field(attr, type, default: nil, desc: nil)
@@ -32,18 +61,18 @@ module Dymos
       define_model_callbacks attr
       define_method(attr) { |raw=false|
         run_callbacks attr do
-        val = read_attribute(attr) || default
-        return val if raw || !val.present?
-        case type
-          when :bool
-            to_b(val)
-          when :time
-            Time.parse val
-          when :integer
-            val.to_i
-          else
-            val
-        end
+          val = read_attribute(attr) || default
+          return val if raw || !val.present?
+          case type
+            when :bool
+              to_b(val)
+            when :time
+              Time.parse val
+            when :integer
+              val.to_i
+            else
+              val
+          end
         end
 
       }
@@ -61,8 +90,8 @@ module Dymos
       define_model_callbacks :"set_#{attr}"
       define_method("#{attr}=") do |value, initialize=false|
         run_callbacks :"set_#{attr}" do
-        value = value.iso8601 if self.class.fields.include?(attr) && value.is_a?(Time)
-        write_attribute(attr, value, initialize)
+          value = value.iso8601 if self.class.fields.include?(attr) && value.is_a?(Time)
+          write_attribute(attr, value, initialize)
         end
       end
     end
@@ -70,7 +99,6 @@ module Dymos
     def self.fields
       @fields
     end
-
 
     def self.table(name)
       define_singleton_method('table_name') { name }
@@ -94,7 +122,21 @@ module Dymos
     end
 
     def self.all
-      self.scan.execute
+      if @query.present? && @query.keys & [:conditions, :add_condition, :where]
+        builder = Dymos::Query::Query.new.name(table_name)
+        @query.each do |k, v|
+          builder.send k, *v
+        end
+        @query={}
+      else
+        builder = Dymos::Query::Scan.new.name(table_name)
+      end
+      _execute(builder)
+    end
+
+    def self.one
+      @query[:limit] = 1
+      self.all.first
     end
 
     def self.find(key1, key2=nil)
@@ -102,19 +144,28 @@ module Dymos
       keys={}
       keys[indexes.first[:attribute_name].to_sym] = key1
       keys[indexes.last[:attribute_name].to_sym] = key2 if indexes.size > 1
-      self.get.key(keys).execute
+
+      builder = Dymos::Query::GetItem.new.name(table_name).key(keys)
+      _execute(builder)
+    end
+    def self._execute(builder)
+      query = builder.build
+      @last_execute_query = {command: builder.command, query: query}
+      response = Dymos::Client.new.command builder.command, query
+      to_model(class_name, response)
     end
 
     def self.key_scheme
-      @key_scheme ||= new.describe_table[:table][:key_schema]
+      @key_scheme ||= describe[:table][:key_schema]
     end
 
     def reload!
       reset_changes
     end
 
-    def describe_table
-      self.class.send(:describe).execute
+    def self.describe
+      builder=Dymos::Query::Describe.new.name(table_name)
+      Dymos::Client.new.command :describe_table, builder.build
     end
 
     def indexes
@@ -122,10 +173,6 @@ module Dymos
         [scheme[:attribute_name], send(scheme[:attribute_name])]
       end
       scheme.to_h
-    end
-
-    def dynamo
-      @client ||= Aws::DynamoDB::Client.new
     end
 
     # @return [String]
@@ -158,5 +205,41 @@ module Dymos
       end
     end
 
+    def self.to_model(class_name, res)
+      if class_name.present?
+        if res.data.respond_to? :items # scan, query
+          metadata = extract(res, :items)
+          res.data[:items].map do |datum|
+            obj = Object.const_get(class_name).new(datum)
+            obj.metadata = metadata
+            obj.new_record = false
+            obj
+          end
+        elsif res.data.respond_to? :attributes # put_item, update_item
+          return nil if res.attributes.nil?
+          obj = Object.const_get(class_name).new(res.attributes)
+          obj.metadata = extract(res, :attributes)
+          obj
+        elsif res.respond_to? :data
+          if res.data.respond_to? :item # get_item, delete_item
+            return nil if res.data.item.nil?
+            obj = Object.const_get(class_name).new(res.data.item)
+            obj.metadata = extract(res, :item)
+            obj.new_record = false
+            obj
+          else
+            res.data.to_hash # describe
+          end
+        end
+      else
+        res.data.to_hash #list_tables
+      end
+
+    end
+
+    def self.extract(res, ignore_key)
+      keys = res.data.members.reject { |a| a == ignore_key }
+      keys.map { |k| [k, res.data[k]] }.to_h
+    end
   end
 end

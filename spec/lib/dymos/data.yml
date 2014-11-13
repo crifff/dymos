@@ -1,0 +1,154 @@
+ProductCatalog:
+ -
+   Id: 101
+   Title: "Book 101 Title"
+   ISBN: "111-1111111111"
+   Authors: "Author 1"
+   Price: -2
+   Dimensions: "8.5 x 11.0 x 0.5"
+   PageCount: 500
+   InPublication: 1
+   ProductCategory: "Book"
+ -
+   Id: 102
+   Title: "Book 102 Title"
+   ISBN: "222-2222222222"
+   Authors: [ "Author 1", "Author 2" ]
+   Price: 20
+   Dimensions: "8.5 x 11.0 x 0.8"
+   PageCount: 600
+   InPublication: 1
+   ProductCategory: "Book"
+ -
+   Id: 103
+   Title: "Book 103 Title"
+   ISBN: "333-3333333333"
+   Authors: [ "Author 1", "Author2", "Author 3" ]
+   Price: 200
+   Dimensions: "8.5 x 11.0 x 1.5"
+   PageCount: "700 InPublication: 0"
+   ProductCategory: "Book"
+ -
+   Id: 201
+   Title: "18-Bicycle 201"
+   Description: "201 description"
+   BicycleType: "Road"
+   Brand: "Brand-Company A"
+   Price: 100
+   Gender: "M"
+   Color: [ "Red", "Black" ]
+   ProductCategory: "Bike"
+ -
+   Id: 202
+   Title: "21-Bicycle 202"
+   Description: "202 description"
+   BicycleType: "Road"
+   Brand: "Brand-Company A"
+   Price: 200
+   Gender: "M"
+   Color: [ "Green", "Black" ]
+   ProductCategory: "Bike"
+ -
+   Id: 203
+   Title: "19-Bicycle 203"
+   Description: "203 description"
+   BicycleType: "Road"
+   Brand: "Brand-Company B"
+   Price: 300
+   Gender: "W"
+   Color: [ "Red", "Green", "Black" ]
+   ProductCategory: "Bike"
+ -
+   Id: 204
+   Title: "18-Bicycle 204"
+   Description: "204 description"
+   BicycleType: "Mountain"
+   Brand: "Brand-Company B"
+   Price: 400
+   Gender: "W"
+   Color: [ "Red" ]
+   ProductCategory: "Bike"
+ -
+   Id: 205
+   Title: "20-Bicycle 205"
+   Description: "205 description"
+   BicycleType: "Hybrid"
+   Brand: "Brand-Company C" 
+   Price: 500
+   Gender: "B" 
+   Color: [ "Red", "Black" ]
+   ProductCategory: "Bike"
+
+Forum:
+  -
+    Name: 'DynamoDB'
+    Category: "Amazon Web Services"
+    Threads: 3
+    Messages: 4
+    Views: 1000
+    LastPostBy: "User A"
+    LastPostDateTime:  "2012-01-03T00:40:57.165Z"
+  -
+    Name: 'Amazon S3'
+    Category: "AWS"
+    Threads: 1
+
+Thread:
+  -
+    ForumName: "DynamoDB"
+    Subject: "DynamoDB Thread 1"
+    Message: "DynamoDB thread 1 message text"
+    LastPostedBy: "User A"
+    Views: 0
+    Replies: 0
+    Answered: 0
+    Tags: [ "index", "primarykey", "table" ]
+    LastPostDateTime:  "2012-01-03T00:40:57.165Z"
+  -
+    ForumName: "DynamoDB"
+    Subject: "DynamoDB Thread 2"
+    Message: "DynamoDB thread 2 message text"
+    LastPostedBy: "User A"
+    Views: 0
+    Replies: 0
+    Answered: 0
+    Tags: [ "index", "primarykey", "rangekey" ]
+    LastPostDateTime:  "2012-01-03T00:40:57.165Z"
+  -
+    ForumName: "Amazon S3"
+    Subject: "Amazon S3 Thread 1"
+    Message: "Amazon S3 Thread 1 message text"
+    LastPostedBy: "User A"
+    Views: 0
+    Replies: 0
+    Answered: 0
+    Tags: [ "largeobject", "multipart upload" ]
+    LastPostDateTime:  "2012-01-03T00:40:57.165Z"
+
+Reply:
+  -
+    Id: "DynamoDB#DynamoDB Thread 1"
+    ReplyDateTime: "2011-12-11T00:40:57.165Z"
+    Message: "DynamoDB Thread 1 Reply 1 text"
+    PostedBy: "User A"
+  -
+    Id: "DynamoDB#DynamoDB Thread 1"
+    ReplyDateTime: "2011-12-18T00:40:57.165Z"
+    Message: "DynamoDB Thread 1 Reply 1 text"
+    PostedBy: "User A"
+  -
+    Id: "DynamoDB#DynamoDB Thread 1"
+    ReplyDateTime: "2011-12-25T00:40:57.165Z"
+    Message: "DynamoDB Thread 1 Reply 3 text"
+    PostedBy: "User B"
+  -
+    Id: "DynamoDB#DynamoDB Thread 2"
+    ReplyDateTime: "2011-12-25T00:40:57.165Z"
+    Message: "DynamoDB Thread 2 Reply 1 text"
+    PostedBy: "User A"
+  -
+    Id: "DynamoDB#DynamoDB Thread 2"
+    ReplyDateTime: "2012-01-03T00:40:57.165Z"
+    Message: "DynamoDB Thread 2 Reply 2"
+    PostedBy: "User A"
+                  

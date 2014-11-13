@@ -41,14 +41,8 @@ describe Dymos::Model do
   end
 
   before :all do
-    Aws.config[:region] = 'us-west-1'
-    Aws.config[:endpoint] = 'http://localhost:4567'
-    Aws.config[:access_key_id] = 'XXX'
-    Aws.config[:secret_access_key] = 'XXX'
-    client = Aws::DynamoDB::Client.new
-
-    client.delete_table(table_name: 'dummy') if client.list_tables[:table_names].include?('dummy')
-    client.create_table(
+    @client.delete_table(table_name: 'dummy') if @client.list_tables[:table_names].include?('dummy')
+    @client.create_table(
       table_name: 'dummy',
       attribute_definitions: [
         {attribute_name: 'id', attribute_type: 'S'}
@@ -60,15 +54,15 @@ describe Dymos::Model do
         read_capacity_units: 1,
         write_capacity_units: 1,
       })
-    client.put_item(table_name: 'dummy', item: {id: 'hoge', name: '太郎', list: Set['a', 'b', 'c']})
-    client.put_item(table_name: 'dummy', item: {id: 'fuga', name: '次郎'})
-    client.put_item(table_name: 'dummy', item: {id: 'piyo', name: '三郎'})
-    client.put_item(table_name: 'dummy', item: {id: 'musashi', name: '巴'}) #削除用
-    client.put_item(table_name: 'dummy', item: {id: 'enable_id', name: 'enable', enable: 1})
-    client.put_item(table_name: 'dummy', item: {id: 'disable_id', name: 'disable', enable: 0})
+    @client.put_item(table_name: 'dummy', item: {id: 'hoge', name: '太郎', list: Set['a', 'b', 'c']})
+    @client.put_item(table_name: 'dummy', item: {id: 'fuga', name: '次郎'})
+    @client.put_item(table_name: 'dummy', item: {id: 'piyo', name: '三郎'})
+    @client.put_item(table_name: 'dummy', item: {id: 'musashi', name: '巴'}) #削除用
+    @client.put_item(table_name: 'dummy', item: {id: 'enable_id', name: 'enable', enable: 1})
+    @client.put_item(table_name: 'dummy', item: {id: 'disable_id', name: 'disable', enable: 0})
 
-    client.delete_table(table_name: 'post') if client.list_tables[:table_names].include?('post')
-    client.create_table(
+    @client.delete_table(table_name: 'post') if @client.list_tables[:table_names].include?('post')
+    @client.create_table(
       table_name: 'post',
       attribute_definitions: [
         {attribute_name: 'id', attribute_type: 'S'},
@@ -188,10 +182,10 @@ describe Dymos::Model do
 
     describe :describe do
       it "table情報を得る" do
-        model = DummyUser.new
-        expect(model.describe_table[:table][:table_name]).to eq('dummy')
-        expect(model.describe_table[:table][:key_schema].first[:attribute_name]).to eq('id')
-        expect(model.describe_table[:table][:key_schema].first[:key_type]).to eq('HASH')
+        describe=DummyUser.describe
+        expect(describe[:table][:table_name]).to eq('dummy')
+        expect(describe[:table][:key_schema].first[:attribute_name]).to eq('id')
+        expect(describe[:table][:key_schema].first[:key_type]).to eq('HASH')
       end
     end
 
@@ -209,7 +203,7 @@ describe Dymos::Model do
 
     describe :find do
       it "ユーザを抽出" do
-        user = DummyUser.get.key(id: 'hoge').execute
+        user = DummyUser.find('hoge')
         expect(user.id).to eq('hoge')
         expect(user.name).to eq('太郎')
       end
@@ -241,7 +235,7 @@ describe Dymos::Model do
         user.save!
         user.email = 'hoge@sample.net'
         Timecop.freeze(now+1)
-        user.save!
+        user.update!
         expect(user.created_at.to_s).to eq(now.to_s)
         expect(user.updated_at.to_s).not_to eq(now.to_s)
       end
@@ -282,7 +276,7 @@ describe Dymos::Model do
 
     describe "DBから引いたモデル" do
       it "" do
-        user = DummyUser.get.key(id: 'hoge').execute
+        user = DummyUser.find('hoge')
         expect(user.changes).to eq({})
         expect(user.changed?).to eq(false)
         user.id = 1
@@ -304,19 +298,19 @@ describe Dymos::Model do
 
       describe "DBから引いたモデル" do
         it do
-          user = DummyUser.get.key(id: 'musashi').execute
+          user = DummyUser.find('musashi')
           expect(user.new_record?).to eq(false)
           expect(user.destroyed?).to eq(false)
           expect(user.persisted?).to eq(true)
           user.delete
           expect(user.destroyed?).to eq(true)
-          expect(DummyUser.get.key(id: 'musashi').execute).to eq(nil)
+          expect(DummyUser.find('musashi')).to eq(nil)
         end
         it 'enableはBoolとして扱われる' do
-          user = DummyUser.get.key(id: 'enable_id').execute
+          user = DummyUser.find('enable_id')
           expect(user.enable).to eq(true)
           expect(user.enable?).to eq(true)
-          user = DummyUser.get.key(id: 'disable_id').execute
+          user = DummyUser.find('disable_id')
           expect(user.enable).to eq(false)
           expect(user.enable?).to eq(false)
         end
@@ -355,7 +349,7 @@ describe Dymos::Model do
       expect(result).to eq(false)
     end
     it "DummyTableをsave!すると例外を返す" do
-      expect{DummyTable.new.save!}.to raise_error
+      expect { DummyTable.new.save! }.to raise_error
     end
   end
 end

@@ -1,55 +1,61 @@
 describe Dymos::Query::Scan do
-  before :all do
-    Aws.config[:region] = 'us-west-1'
-    Aws.config[:endpoint] = 'http://localhost:4567'
-    Aws.config[:access_key_id] = 'XXX'
-    Aws.config[:secret_access_key] = 'XXX'
 
-    client = Aws::DynamoDB::Client.new
-    client.delete_table(table_name: 'test_get_item') if client.list_tables[:table_names].include?('test_get_item')
-    client.create_table(
-        table_name: 'test_get_item',
-        attribute_definitions: [
-            {attribute_name: 'id', attribute_type: 'S'},
-            {attribute_name: 'category_id', attribute_type: 'N'},
-        ],
-        key_schema: [
-            {attribute_name: 'id', key_type: 'HASH'},
-            {attribute_name: 'category_id', key_type: 'RANGE'}
-        ],
-        provisioned_throughput: {
-            read_capacity_units: 1,
-            write_capacity_units: 1,
-        })
-    client.put_item(table_name: 'test_get_item', item: {id: 'hoge', category_id: 0, name: '太郎'})
-    client.put_item(table_name: 'test_get_item', item: {id: 'hoge', category_id: 1})
-    client.put_item(table_name: 'test_get_item', item: {id: 'hoge', category_id: 2})
-    client.put_item(table_name: 'test_get_item', item: {id: 'hoge', category_id: 3})
-    client.put_item(table_name: 'test_get_item', item: {id: 'hoge', category_id: 4})
+  describe 'build query' do
+    let(:builder) { Dymos::Query::Scan.new }
 
-    class TestItem < Dymos::Model
-      table :test_get_item
-      field :id, :string
+    it :name do
+      builder.name('hoge')
+      expect(builder.build).to eq({table_name: 'hoge'})
+      # .attributes('item1', 'item2').limit(20).select('ALL_ATTRIBUTES')
+      # .filter([[:item1, :eq, 1], [:item2, :begins_with, 'fuga']], :or)
     end
-  end
-
-  let(:client) { Aws::DynamoDB::Client.new }
-  describe :scan do
-
-    it :query do
-      expect(TestItem.scan.limit(100).query).to eq(table_name: "test_get_item", limit: 100)
+    it :name do
+      builder.attributes('item1', 'item2')
+      expect(builder.build).to eq({attributes_to_get: ['item1', 'item2']})
     end
 
-    it :execute do
-      res=TestItem.scan.execute
-      expect(res.size).to eq(5)
-      expect(res.first.metadata).to eq(count: 5, scanned_count: 5, last_evaluated_key: nil, consumed_capacity: nil)
+    it :filter do
+      builder.filter([[:item1, :eq, [1, 2, 3]], [:item2, :begins_with, 'fuga']], :or)
+      expect(builder.build).to eq({scan_filter: {
+                                    'item1' => {
+                                      attribute_value_list: [1, 2, 3],
+                                      comparison_operator: 'EQ'
+                                    },
+                                    'item2' => {
+                                      attribute_value_list: ['fuga'],
+                                      comparison_operator: 'BEGINS_WITH'
+                                    }},
+                                   conditional_operator: 'OR'
+                                  })
     end
 
-
-    it :query do
-      expect(TestItem.scan.limit(100).exclusive_start_key('hoge').query).to eq(table_name: "test_get_item", exclusive_start_key:"hoge", limit: 100)
+    it :add_filter, :filter_operator do
+      builder.add_filter(:item1, [1, 2, 3]).add_filter(:item2, :begins_with, 'fuga').filter_operator(:or)
+      expect(builder.build).to eq({scan_filter: {
+                                    'item1' => {
+                                      attribute_value_list: [1, 2, 3],
+                                      comparison_operator: 'EQ'
+                                    },
+                                    'item2' => {
+                                      attribute_value_list: ['fuga'],
+                                      comparison_operator: 'BEGINS_WITH'
+                                    }},
+                                   conditional_operator: 'OR'
+                                  })
     end
+
+    it :start_key do
+      builder.start_key(id: 1, hoge: 'fuga')
+      expect(builder.build).to eq({exclusive_start_key: {"id" => 1, "hoge" => "fuga"}})
+    end
+
+    it '絞込' do
+      builder.name(:ProductCatalog).add_filter(:Authors, :contains, "Author 1")
+      result = @client.scan(builder.build)
+      expect(result[:scanned_count]).to eq(8)
+      expect(result[:count]).to eq(3)
+    end
+
   end
 end
 

@@ -15,7 +15,7 @@ module Dymos
       end
 
       def build(value={})
-        value = Dymos::Config.default[command.to_sym].merge value
+        value = ::Dymos::Config.default[command.to_sym].merge value
         @query.merge value
       end
     end

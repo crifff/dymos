@@ -21,7 +21,7 @@ install it yourself as:
 
 ### テーブル生成
 
-```
+```ruby
 Dymos::Query::CreateTable.name('ProductCatalogs')
   .attributes(category: 'S', title: 'S', ISBN:'S', price:'N')
   .keys(category: 'HASH', title: 'RANGE')
@@ -32,7 +32,7 @@ Dymos::Query::CreateTable.name('ProductCatalogs')
 
 ### モデル定義
 
-```
+```ruby
 class Product < Dymos::Model
     table 'ProductCatalogs'
     field :category, :integer

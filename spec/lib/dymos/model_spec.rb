@@ -174,7 +174,16 @@ describe Dymos::Model do
   describe :attributes do
     it 'まとめて取得' do
       model = DummyUser.new(sample_user_hash)
-      expect(model.attributes).to eq(sample_user_hash)
+      expect(model.attributes).to eq(
+                                    id:'hoge',
+                                    name:'太郎',
+                                    email:'hoge@example.net',
+                                    list:Set['a', 'b', 'c'],
+                                    count:10,
+                                    enable:false,
+                                    created_at:nil,
+                                    updated_at:nil
+                                  )
     end
   end
 

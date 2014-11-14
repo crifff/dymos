@@ -54,7 +54,8 @@ module Dymos
       @fields ||= {}
       @fields[attr]={
         type: type,
-        default: default
+        default: default,
+        desc:desc
       }
       define_attribute_methods attr
 
@@ -76,7 +77,9 @@ module Dymos
         end
 
       }
+      define_singleton_method("#{attr}_type") { type }
       define_method("#{attr}_type") { type }
+      define_singleton_method("#{attr}_desc") { desc }
       define_method("#{attr}_desc") { desc }
       define_method("#{attr}?") do
         val = self.send attr
@@ -115,7 +118,7 @@ module Dymos
 
     def attributes(raw=false)
       attrs = {}
-      @attributes.keys.each do |name|
+      self.class.fields.keys.each do |name|
         attrs[name] = send "#{name}", raw if respond_to? "#{name}"
       end
       attrs

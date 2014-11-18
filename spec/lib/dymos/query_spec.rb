@@ -74,6 +74,19 @@ describe 'query' do
       expect(result.count).to eq(2)
     end
 
+    describe :filter_expression do
+      it :scan do
+        result =ThreadModel.expression("ForumName = :name").bind_values(name: "DynamoDB").all
+        expect(result.count).to eq(2)
+      end
+      it :query do
+        result =ThreadModel.where(ForumName: "DynamoDB").filter_expression("contains(#column, :number)")
+                  .bind_names(column: "Subject")
+                  .bind_values(number: "Thread 1").all
+        expect(result.count).to eq(1)
+      end
+    end
+
     describe :conditions do
       describe :time do
         it :== do

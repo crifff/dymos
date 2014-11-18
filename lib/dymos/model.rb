@@ -23,7 +23,8 @@ module Dymos
       def method_missing(name, *args, &block)
         methods ||= ::Dymos::Query::Query.instance_methods(false)+
           ::Dymos::Query::GetItem.instance_methods(false)+
-          ::Dymos::Query::Scan.instance_methods(false)
+          ::Dymos::Query::Scan.instance_methods(false)+
+          ::Dymos::Query::Parameter::FilterExpression.instance_methods(false)
         if methods.include? name
           @query||={}
           @query[name]=args

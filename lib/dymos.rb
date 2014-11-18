@@ -1,6 +1,7 @@
 require 'active_support/all'
 
 require "dymos/config"
+require "dymos/query/parameter/filter_expression"
 require "dymos/query/base"
 require "dymos/query/put_item"
 require "dymos/query/update_item"

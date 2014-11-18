@@ -1,6 +1,7 @@
 module Dymos
   module Query
     class Query < Base
+      include Parameter::FilterExpression
 
       def command
         'query'
@@ -46,7 +47,6 @@ module Dymos
         @query[:key_conditions].store(*_add_filter(column, operator, value))
         self
       end
-
 
       def comparison_operator(value)
         @query[:comparison_operator] = value.to_s.upcase
@@ -105,15 +105,6 @@ module Dymos
         self
       end
 
-      def projection_expression(value)
-        @query[:projection_expression] = value
-        self
-      end
-
-      def expression_attribute_names(value)
-        @query[:expression_attribute_names] = value.deep_stringify_keys
-        self
-      end
     end
   end
 end

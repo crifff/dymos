@@ -1,6 +1,8 @@
 module Dymos
   module Query
     class Scan < Base
+      include Parameter::FilterExpression
+
       def command
         'scan'
       end
@@ -67,26 +69,6 @@ module Dymos
 
       def segment(value)
         @query[:segment] = value
-        self
-      end
-
-      def projection_expression(value)
-        @query[:projection_expression] = value
-        self
-      end
-
-      def filter_expression(value)
-        @query[:filter_expression] = value
-        self
-      end
-
-      def expression_attribute_names(value)
-        @query[:expression_attribute_names] = value.deep_stringify_keys
-        self
-      end
-
-      def expression_attribute_values(value)
-        @query[:expression_attribute_values] = value.deep_stringify_keys
         self
       end
 

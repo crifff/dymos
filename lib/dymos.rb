@@ -18,6 +18,19 @@ require "dymos/client"
 require "dymos/version"
 
 module Dymos
+  def self.model_query_methods
+    @model_query_methods ||= ::Dymos::Query::Query.instance_methods(false)+
+      ::Dymos::Query::GetItem.instance_methods(false)+
+      ::Dymos::Query::Scan.instance_methods(false)+
+      ::Dymos::Query::Parameter::FilterExpression.instance_methods(false)
+
+  end
+
+  def self.model_update_query_methods
+    @model_update_query_methods ||= ::Dymos::Query::UpdateItem.instance_methods(false)+
+      ::Dymos::Query::PutItem.instance_methods(false)+
+      ::Dymos::Query::DeleteItem.instance_methods(false)
+  end
 end
 
 #Timeオブジェクト扱いたいのでアラウンドエイリアスで先に捕まえる

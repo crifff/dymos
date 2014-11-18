@@ -49,7 +49,7 @@ module Dymos
 
     def self.field(attr, type, default: nil, desc: nil)
       fail StandardError('attribute name is invalid') if attr =~ /[\!\?]$/
-      fail StandardError('require "default" option') if (type == :bool && default.nil?)
+      fail StandardError('require "default" option') if (type == :boolean && default.nil?)
 
       @fields ||= {}
       @fields[attr]={
@@ -65,7 +65,7 @@ module Dymos
           val = read_attribute(attr) || default
           return val if raw || !val.present?
           case type
-            when :bool
+            when :boolean
               to_b(val)
             when :time
               Time.parse val
@@ -83,7 +83,7 @@ module Dymos
       define_method("#{attr}_desc") { desc }
       define_method("#{attr}?") do
         val = self.send attr
-        if type == :bool
+        if type == :boolean
           val
         else
           !val.nil?

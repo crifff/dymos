@@ -27,8 +27,6 @@ module Aws
         alias :orig_format :format
         def format(obj)
           case obj
-            when TrueClass then { n:"1" }
-            when FalseClass then { n:"0" }
             when Time then { s: obj.iso8601 }
             else
               orig_format obj

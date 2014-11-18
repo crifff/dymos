@@ -7,7 +7,7 @@ describe Dymos::Model do
     end
     it "type:boolには初期値が必須" do
       expect { Class.new(Dymos::Model) do
-        field "hoge", :bool
+        field "hoge", :boolean
       end }.to raise_error
     end
   end
@@ -18,7 +18,7 @@ describe Dymos::Model do
     field :email, :string
     field :list, :string_set
     field :count, :integer
-    field :enable, :bool, default: false
+    field :enable, :boolean, default: false
 
     field :created_at, :time
     field :updated_at, :time
@@ -58,8 +58,8 @@ describe Dymos::Model do
     @client.put_item(table_name: 'dummy', item: {id: 'fuga', name: '次郎'})
     @client.put_item(table_name: 'dummy', item: {id: 'piyo', name: '三郎'})
     @client.put_item(table_name: 'dummy', item: {id: 'musashi', name: '巴'}) #削除用
-    @client.put_item(table_name: 'dummy', item: {id: 'enable_id', name: 'enable', enable: 1})
-    @client.put_item(table_name: 'dummy', item: {id: 'disable_id', name: 'disable', enable: 0})
+    @client.put_item(table_name: 'dummy', item: {id: 'enable_id', name: 'enable', enable: true})
+    @client.put_item(table_name: 'dummy', item: {id: 'disable_id', name: 'disable', enable: false})
 
     @client.delete_table(table_name: 'post') if @client.list_tables[:table_names].include?('post')
     @client.create_table(

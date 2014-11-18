@@ -26,12 +26,9 @@ module Dymos
         self
       end
 
-      def add_filter(*value)
-        if value.count == 2
-          column, operator, value = value[0], :eq, value[1]
-        else
-          column, operator, value = value
-        end
+      def add_filter(*values)
+        column, operator, value = parse_condition(*values)
+
         @query[:scan_filter] ||= {}
         @query[:scan_filter].store(*_add_filter(column, operator, value))
         filter_operator 'AND' if @query[:conditional_operator].blank? && @query[:scan_filter].count > 1
@@ -39,11 +36,11 @@ module Dymos
       end
 
       def _add_filter(column, operator, value)
-        [column.to_s, {
-                      attribute_value_list: [*value],
-                      comparison_operator: operator.to_s.upcase
-                    }
-        ]
+        hash = {
+          comparison_operator: operator.to_s.upcase
+        }
+        hash[:attribute_value_list]=[*value] if value.present?
+        [column.to_s, hash]
       end
 
       def filter_operator(value)

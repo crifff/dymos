@@ -15,12 +15,8 @@ module Dymos
         self
       end
 
-      def add_expected(*value)
-        if value.count == 2
-          column, operator, value = value[0], :eq, value[1]
-        else
-          column, operator, value = value
-        end
+      def add_expected(*values)
+        column, operator, value = parse_condition(*values)
         @query[:expected] ||= {}
         @query[:expected].store(*_add_expected(column, operator, value))
         self

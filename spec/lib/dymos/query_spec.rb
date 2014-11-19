@@ -32,6 +32,7 @@ describe 'query' do
     field :Views, :integer
     field :Answered, :string
     field :Tags, :array
+    field :Option, :string
     field :LastPostDateTime, :time
   end
   class ReplyModel < Dymos::Model
@@ -39,7 +40,7 @@ describe 'query' do
     field :Id, :string
     field :ReplyDateTime, :time
     field :Message, :string
-    field :ReplyDateTime, :string
+    field :PostedBy, :string
   end
 
   describe :find do
@@ -71,6 +72,62 @@ describe 'query' do
       result = ReplyModel.index(:PostedByIndex).
         where(Id: "DynamoDB#DynamoDB Thread 1", PostedBy: "User A").all
       expect(result.count).to eq(2)
+    end
+
+    describe :filter_expression do
+      it :scan do
+        result =ThreadModel.expression("ForumName = :name").bind_values(name: "DynamoDB").all
+        expect(result.count).to eq(2)
+      end
+      it :query do
+        result =ThreadModel.where(ForumName: "DynamoDB").filter_expression("contains(#column, :number)")
+                  .bind_names(column: "Subject")
+                  .bind_values(number: "Thread 1").all
+        expect(result.count).to eq(1)
+      end
+    end
+
+    describe :conditions do
+      describe :time do
+        it :== do
+          time = Time.parse("2011-12-11T00:40:57.165Z")
+          result = ReplyModel.add_filter(:ReplyDateTime, :eq, time.iso8601(3)).all
+          expect(result.count).to eq(1)
+        end
+        it :> do
+          time = Time.parse("2011-12-11T00:40:57.165Z")
+          result = ReplyModel.add_filter(:ReplyDateTime, :gt, time.iso8601(3)).all
+          expect(result.count).to eq(4)
+        end
+        it :>= do
+          time = Time.parse("2011-12-11T00:40:57.165Z")
+          result = ReplyModel.add_filter(:ReplyDateTime, :ge, time.iso8601(3)).all
+          expect(result.count).to eq(5)
+        end
+        it :< do
+          time = Time.parse("2012-01-03T00:40:57.165Z")
+          result = ReplyModel.add_filter(:ReplyDateTime, :lt, time.iso8601(3)).all
+          expect(result.count).to eq(4)
+        end
+        it :<= do
+          time = Time.parse("2012-01-03T00:40:57.165Z")
+          result = ReplyModel.add_filter(:ReplyDateTime, :le, time.iso8601(3)).all
+          expect(result.count).to eq(5)
+        end
+        it :<= do
+          time = Time.parse("2012-01-03T00:40:57.165Z")
+          result = ReplyModel.add_filter(:ReplyDateTime, :le, time.iso8601(3)).all
+          expect(result.count).to eq(5)
+        end
+        it :null do
+          result = ThreadModel.add_filter(:Hoge, :null).all
+          expect(result.count).to eq(3)
+        end
+        it :not_null do
+          result = ThreadModel.add_filter(:Hoge, :not_null).all
+          expect(result.count).to eq(0)
+        end
+      end
     end
   end
   it :one do
@@ -141,7 +198,7 @@ describe 'query' do
     describe :delete do
       it 'del' do
         model = TestModelSaveItem.find('piyo')
-        expect(model.add_expected(:param1,:eq,103).delete.class).to eq(TestModelSaveItem)
+        expect(model.add_expected(:param1, :eq, 103).delete.class).to eq(TestModelSaveItem)
         expect(TestModelSaveItem.find('piyo')).to eq(nil)
       end
     end

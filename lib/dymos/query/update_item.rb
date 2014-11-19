@@ -30,12 +30,8 @@ module Dymos
         self
       end
 
-      def add_attribute_updates(*value)
-        if value.count == 2
-          column, operator, value = value[0], :put, value[1]
-        else
-          column, operator, value = value
-        end
+      def add_attribute_updates(*values)
+        column, operator, value = parse_condition(*values)
         @query[:attribute_updates] ||= {}
         @query[:attribute_updates].store(*_attribute_updates(column, operator, value))
         self
@@ -54,12 +50,8 @@ module Dymos
         self
       end
 
-      def add_expected(*value)
-        if value.count == 2
-          column, operator, value = value[0], :eq, value[1]
-        else
-          column, operator, value = value
-        end
+      def add_expected(*values)
+        column, operator, value = parse_condition(*values)
         @query[:expected] ||= {}
         @query[:expected].store(*_add_expected(column, operator, value))
         self

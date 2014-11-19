@@ -103,6 +103,7 @@ Thread:
     Replies: 0
     Answered: 0
     Tags: [ "index", "primarykey", "table" ]
+    Option:
     LastPostDateTime:  "2012-01-03T00:40:57.165Z"
   -
     ForumName: "DynamoDB"
@@ -113,6 +114,7 @@ Thread:
     Replies: 0
     Answered: 0
     Tags: [ "index", "primarykey", "rangekey" ]
+    Option:
     LastPostDateTime:  "2012-01-03T00:40:57.165Z"
   -
     ForumName: "Amazon S3"
@@ -123,6 +125,7 @@ Thread:
     Replies: 0
     Answered: 0
     Tags: [ "largeobject", "multipart upload" ]
+    Option: "private"
     LastPostDateTime:  "2012-01-03T00:40:57.165Z"
 
 Reply:

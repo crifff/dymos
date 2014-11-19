@@ -1,6 +1,8 @@
 module Dymos
   module Query
     class Scan < Base
+      include Parameter::FilterExpression
+
       def command
         'scan'
       end
@@ -26,12 +28,9 @@ module Dymos
         self
       end
 
-      def add_filter(*value)
-        if value.count == 2
-          column, operator, value = value[0], :eq, value[1]
-        else
-          column, operator, value = value
-        end
+      def add_filter(*values)
+        column, operator, value = parse_condition(*values)
+
         @query[:scan_filter] ||= {}
         @query[:scan_filter].store(*_add_filter(column, operator, value))
         filter_operator 'AND' if @query[:conditional_operator].blank? && @query[:scan_filter].count > 1
@@ -39,11 +38,11 @@ module Dymos
       end
 
       def _add_filter(column, operator, value)
-        [column.to_s, {
-                      attribute_value_list: [*value],
-                      comparison_operator: operator.to_s.upcase
-                    }
-        ]
+        hash = {
+          comparison_operator: operator.to_s.upcase
+        }
+        hash[:attribute_value_list]=[*value] if value.present?
+        [column.to_s, hash]
       end
 
       def filter_operator(value)
@@ -70,26 +69,6 @@ module Dymos
 
       def segment(value)
         @query[:segment] = value
-        self
-      end
-
-      def projection_expression(value)
-        @query[:projection_expression] = value
-        self
-      end
-
-      def filter_expression(value)
-        @query[:filter_expression] = value
-        self
-      end
-
-      def expression_attribute_names(value)
-        @query[:expression_attribute_names] = value.deep_stringify_keys
-        self
-      end
-
-      def expression_attribute_values(value)
-        @query[:expression_attribute_values] = value.deep_stringify_keys
         self
       end
 

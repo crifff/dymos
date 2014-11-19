@@ -1,6 +1,7 @@
 module Dymos
   module Query
     class Query < Base
+      include Parameter::FilterExpression
 
       def command
         'query'
@@ -40,17 +41,12 @@ module Dymos
         self
       end
 
-      def add_conditions(*value)
-        if value.count == 2
-          column, operator, value = value[0], :eq, value[1]
-        else
-          column, operator, value = value
-        end
+      def add_conditions(*values)
+        column, operator, value = parse_condition(*values)
         @query[:key_conditions] ||= {}
         @query[:key_conditions].store(*_add_filter(column, operator, value))
         self
       end
-
 
       def comparison_operator(value)
         @query[:comparison_operator] = value.to_s.upcase
@@ -63,12 +59,8 @@ module Dymos
         self
       end
 
-      def add_filter(*value)
-        if value.count == 2
-          column, operator, value = value[0], :eq, value[1]
-        else
-          column, operator, value = value
-        end
+      def add_filter(*values)
+        column, operator, value = parse_condition(*values)
         @query[:query_filter] ||= {}
         @query[:query_filter].store(*_add_filter(column, operator, value))
         filter_operator 'AND' if @query[:conditional_operator].blank? && @query[:query_filter].count > 1
@@ -113,15 +105,6 @@ module Dymos
         self
       end
 
-      def projection_expression(value)
-        @query[:projection_expression] = value
-        self
-      end
-
-      def expression_attribute_names(value)
-        @query[:expression_attribute_names] = value.deep_stringify_keys
-        self
-      end
     end
   end
 end

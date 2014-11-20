@@ -63,7 +63,7 @@ module Dymos
             when :boolean
               to_b(val)
             when :time
-              Time.parse val
+              Time.parse val rescue nil
             when :integer
               val.to_i
             else

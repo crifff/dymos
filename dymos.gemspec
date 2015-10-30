@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "fake_dynamo"
   spec.add_development_dependency "coveralls"
   spec.add_development_dependency "timecop"
-  spec.add_development_dependency "activemodel", '~> 4.1.5'
 
+  spec.add_dependency "activemodel", '~> 4.1.5'
   spec.add_dependency "aws-sdk-core"
 end

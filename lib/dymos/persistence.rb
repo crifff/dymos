@@ -120,7 +120,7 @@ module Dymos
       fail raise(::Dymos::RecordNotSaved) if response.nil?
       changes_applied
       @new_record = false
-      response.present?
+			true
     end
 
   end
